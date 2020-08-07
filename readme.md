@@ -1,0 +1,3 @@
+This project provides a tool I made to fetch contributors for GitHub projects. 
+
+The motivation for this project stemmed from an issue within development for the Hack for LA website, where we wanted to reflect contributions of those who commit code as well as those who provide their contributions through issue comments. The GitHub API currently does not have an endpoint that can resolve this issue, but instead requires the aggregation of data from 2 different API endpoints (Contributors and Issue Comments).
