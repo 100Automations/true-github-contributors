@@ -1,0 +1,26 @@
+{
+  "name": "github-contributors-helper",
+  "version": "1.0.0",
+  "description": "Module to assists with GitHub contributor data using the GitHub API.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node helper-test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/KianBadie/github-contributor-helper.git"
+  },
+  "author": "Kian Badie",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KianBadie/github-contributor-helper/issues"
+  },
+  "homepage": "https://github.com/KianBadie/github-contributor-helper#readme",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "lodash": "^4.17.19"
+  },
+  "devDependencies": {
+    "dotenv": "^8.2.0"
+  }
+}
