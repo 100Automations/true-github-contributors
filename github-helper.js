@@ -109,12 +109,13 @@ class GitHubHelper {
             let [link, rel] = linkRel.split(';').map(function(item) {
                 return item.trim();
             });
-            link = link.substring(1, link.length - 1);
             if(rel == 'rel="next"'){
                 // Make recursive call to same method to get next page of comments
+                link = link.substring(1, link.length - 1);
                 return res.data.concat(await this.fetchAllSync(link));
             }
         }
+        // If no rel="next" link relation then we are on last page of data, simply return data
         return res.data;
     }
 
@@ -122,6 +123,7 @@ class GitHubHelper {
      * Helper method to construct request urls with given parameters
      * @param  {Object} requestUrl      [URL endpoint to make request to]
      * @param  {Object} parameters      [Parameters to be added to request url]
+     * @return {String}                 [The constructed url from the given url and parameters]
      */
     _constructRequestUrl(requestUrl, parameters={}) {
         requestUrl = !(_.isEmpty(parameters)) ? `${requestUrl}?`: requestUrl;
