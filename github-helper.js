@@ -96,11 +96,7 @@ class GitHubHelper {
      */
     async fetchAllSync(requestUrl, parameters={}) {
         // Construct request url with given parameters
-        requestUrl = !(_.isEmpty(parameters)) ? `${requestUrl}?`: requestUrl;
-        for(let parameter in parameters){
-            requestUrl = requestUrl.concat(`${parameter}=${parameters[parameter]}&`);
-        }
-        let res = await axios.get(requestUrl, this.config);
+        let res = await axios.get(this._constructRequestUrl(requestUrl, parameters), this.config);
         // Return results immediataly if there is only 1 page of results.
         if(!res.headers.link){
             return Promise.resolve(res.data);
@@ -120,6 +116,19 @@ class GitHubHelper {
             }
         }
         return res.data;
+    }
+
+    /**
+     * Helper method to construct request urls with given parameters
+     * @param  {Object} requestUrl      [URL endpoint to make request to]
+     * @param  {Object} parameters      [Parameters to be added to request url]
+     */
+    _constructRequestUrl(requestUrl, parameters={}) {
+        requestUrl = !(_.isEmpty(parameters)) ? `${requestUrl}?`: requestUrl;
+        for(let parameter in parameters){
+            requestUrl = requestUrl.concat(`${parameter}=${parameters[parameter]}&`);
+        }
+        return requestUrl;
     }
 
     /**

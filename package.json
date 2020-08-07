@@ -4,7 +4,7 @@
   "description": "Module to assists with GitHub contributor data using the GitHub API.",
   "main": "index.js",
   "scripts": {
-    "test": "node helper-test.js"
+    "test": "node test/helper-test.js"
   },
   "repository": {
     "type": "git",
