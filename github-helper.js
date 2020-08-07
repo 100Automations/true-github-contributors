@@ -26,6 +26,7 @@ class GitHubHelper {
         let issueCommentsData = await this.getIssueCommentsParsedSync({ownerLogin, repoName, parameters});
         let contributorsData = await this.getContributorsSync({ownerLogin, repoName, parameters});
         let allContributors = [].concat(issueCommentsData, contributorsData);
+        // Create a dictionary with schema { gitHubUserId: userInformation } to keep track of contribution count
         let contributorsDictionary = {};
         for(let contributor of allContributors) {
             if(contributor.id in contributorsDictionary) {
@@ -35,6 +36,7 @@ class GitHubHelper {
             }
         }
 
+        // Convert the user dictionary into an array of user objects
         let contributorsPlus = this._convertDictionaryToArray(contributorsDictionary);
         contributorsPlus.sort(this._sortBy('contributions'));
         return contributorsPlus;
@@ -49,6 +51,7 @@ class GitHubHelper {
      */
     async getIssueCommentsParsedSync({ownerLogin, repoName, parameters={}} = {}) {
         let issueCommentsData = await this.getIssueCommentsSync({ownerLogin, repoName, parameters});
+        // Create a dictionary with schema { gitHubUserId: userInformation } to keep track of comment count  
         let issueCommentsParsed = {};
         for(let comment of issueCommentsData) {
             let contributor = comment.user;
@@ -59,6 +62,7 @@ class GitHubHelper {
                 issueCommentsParsed[contributor.id].contributions = 1;
             }
         }
+        // Convert the user dictionary into an array of user objects
         let issueCommentsArray = this._convertDictionaryToArray(issueCommentsParsed);
         issueCommentsArray.sort(this._sortBy('contributions'));
         return issueCommentsArray;
