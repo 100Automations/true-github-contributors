@@ -1,8 +1,9 @@
 require('dotenv').config();
 const GitHubHelper = require('../github-helper');
+const fs = require('fs');
 
 let tester = new GitHubHelper(process.env.token);
-tester.getCombinedContributors({owner: "github", repo: "opensourcefriday"})
+tester.getContributorsOrg("Public-Tree-Map")
     .then(function(res){
-        console.log(res);
+        fs.writeFileSync("./org-contributors.json", JSON.stringify(res, null, 2));
     });

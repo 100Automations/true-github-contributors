@@ -11,6 +11,25 @@ class GitHubHelper {
             auth: apiToken
         });
     }
+    
+    /**
+     * Method to fetch contributors list based on number of issue comments and commits across an organization
+     * @param  {String} org             [Name of GitHub organization]
+     * @return {Array}                  [Array of GitHub users with data about how many contributions they made to an organization]
+     */
+    async getContributorsOrg(org) {
+        let repos = await this.octokit.paginate(this.octokit.repos.listForOrg, {
+            org
+        });
+        
+        let contributors = []
+        for(let repo of repos) {
+            let repoContributors = await this.getCombinedContributors({owner: repo.owner.login, repo: repo.name});
+            contributors = contributors.concat(repoContributors);
+        }
+        contributors = this._aggregateContributions(contributors);
+        return contributors.sort(this._sortBy("contributions"));
+    }
 
     /**
      * Method to fetch contributors list based on number of issue comments and commits
@@ -25,7 +44,7 @@ class GitHubHelper {
         });
         let commentContributors = await this.getCommentContributors({owner, repo});
 
-        let combinedContributors = this._combineCommitCommentContributors(contributors, commentContributors);
+        let combinedContributors = this._aggregateContributions([].concat(contributors, commentContributors));
         combinedContributors.sort(this._sortBy("contributions"));
         return combinedContributors;
     }
@@ -38,8 +57,8 @@ class GitHubHelper {
      */
     async getCommentContributors({owner, repo}) {
         let issueComments = await this.octokit.paginate(this.octokit.issues.listCommentsForRepo, {
-            owner: "github",
-            repo: "opensourcefriday"
+            owner,
+            repo
         });
         let commentContributors = this._aggregateIssueComments(issueComments);
         commentContributors.sort(this._sortBy("contributions"));
@@ -48,7 +67,7 @@ class GitHubHelper {
 
     /**
      * Helper method to aggregate GitHub comment objects into a list of contributors
-     * @param  {String} issueComments   [Array of GitHub comment objects]
+     * @param  {Array} issueComments    [Array of GitHub comment objects]
      * @return {Array}                  [Array of GitHub users with data about how many issue comments they made under the field of 'contributions']
      */
     _aggregateIssueComments(issueComments) {
@@ -69,11 +88,16 @@ class GitHubHelper {
         return this._convertDictionaryToArray(userCommentDictionary);
     }
 
-    _combineCommitCommentContributors(contributorData, aggregateCommentData) {
-        let combinedLists = [].concat(contributorData, aggregateCommentData);
+    /**
+     * Helper method to aggregate GitHub contributors
+     * @param  {Array} contributorData          [Array of GitHub contributors based on commits]
+     * @param  {Array} aggregateCommentData     [Array of GitHub contributors based on issue comments]
+     * @return {Array}                          [Array of GitHub users with data about how many contributions they made]
+     */
+    _aggregateContributions(contributorsList) {
         // Use JSON to create a dictionary of users and their contributions
         let contributorsDictionary = {};
-        for(let contributor of combinedLists) {
+        for(let contributor of contributorsList) {
             // If user id for this contributor exists in dictionary, add new contributor's contributions to the existing contributions 
             if(contributor.id in contributorsDictionary) {
                 contributorsDictionary[contributor.id].contributions += contributor.contributions;
