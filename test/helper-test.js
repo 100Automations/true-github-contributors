@@ -1,8 +1,8 @@
-const environment = require('dotenv').config();
+require('dotenv').config();
 const GitHubHelper = require('../github-helper');
 
 let tester = new GitHubHelper(process.env.token);
-tester.getContributorsPlus({ownerLogin: 'hackforla', repoName: 'website'})
-    .then(function(data){
-        console.log(data);
+tester.getCombinedContributors({owner: "github", repo: "opensourcefriday"})
+    .then(function(res){
+        console.log(res);
     });

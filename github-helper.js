@@ -1,140 +1,89 @@
-const axios = require('axios');
-const _ = require('lodash');
+const { Octokit } = require("@octokit/rest");
 
 class GitHubHelper {
 
     /**
-     * Constructs a GitHubUtil object with a given api token.
+     * Constructs a GitHubHelper object with a given api token.
      * @param  {String} apiToken        [Api token of given GitHub API app]
      */
     constructor(apiToken){
-        this.config = {
-            headers: {
-                Authorization: `token ${apiToken}`
-            }
-        }
+        this.octokit = new Octokit({
+            auth: apiToken
+        });
     }
 
     /**
-     * Method to get contributors data based on commits and issue comments
-     * @param  {String} ownerLogin      [Name of login for repository owner]
-     * @param  {String} repoName        [Name of repository]
-     * @param  {Object} parameters      [Dictionary of parameters to be included in API request]
-     * @return {Array}                  [Array of issue contributor objects that represent contributions aggregated from issue comments and commit data]
+     * Method to fetch contributors list based on number of issue comments and commits
+     * @param  {String} owner           [Name of login for repository owner]
+     * @param  {String} repo            [Name of repository]
+     * @return {Array}                  [Array of GitHub users with data about how many contributions they made]
      */
-    async getContributorsPlus({ownerLogin, repoName, parameters={}} = {}) {
-        let issueCommentsData = await this.getIssueCommentsParsedSync({ownerLogin, repoName, parameters});
-        let contributorsData = await this.getContributorsSync({ownerLogin, repoName, parameters});
-        let allContributors = [].concat(issueCommentsData, contributorsData);
-        // Create a dictionary with schema { gitHubUserId: userInformation } to keep track of contribution count
+    async getCombinedContributors({owner, repo} = {}) {
+        let contributors = await this.octokit.paginate(this.octokit.repos.listContributors, {
+            owner,
+            repo
+        });
+        let commentContributors = await this.getCommentContributors({owner, repo});
+
+        let combinedContributors = this._combineCommitCommentContributors(contributors, commentContributors);
+        combinedContributors.sort(this._sortBy("contributions"));
+        return combinedContributors;
+    }
+
+    /**
+     * Method to fetch contributors list based on number of issue comments
+     * @param  {String} owner           [Name of login for repository owner]
+     * @param  {String} repo            [Name of repository]
+     * @return {Array}                  [Array of GitHub users with data about how many issue comments they made under the field of 'contributions']
+     */
+    async getCommentContributors({owner, repo}) {
+        let issueComments = await this.octokit.paginate(this.octokit.issues.listCommentsForRepo, {
+            owner: "github",
+            repo: "opensourcefriday"
+        });
+        let commentContributors = this._aggregateIssueComments(issueComments);
+        commentContributors.sort(this._sortBy("contributions"));
+        return commentContributors;
+    }
+
+    /**
+     * Helper method to aggregate GitHub comment objects into a list of contributors
+     * @param  {String} issueComments   [Array of GitHub comment objects]
+     * @return {Array}                  [Array of GitHub users with data about how many issue comments they made under the field of 'contributions']
+     */
+    _aggregateIssueComments(issueComments) {
+        // Use JSON to create a dictionary of users and their contributions 
+        let userCommentDictionary = {};
+        for(let comment of issueComments) {
+            let contributor = comment.user;
+            // If user id for this comment exists in dictionary, add a contribution to that user
+            if(contributor.id in userCommentDictionary) {
+                userCommentDictionary[contributor.id].contributions++;
+            // If user id for this comment does not exist, add user to dictionary with one contribution
+            } else {
+                userCommentDictionary[contributor.id] = contributor;
+                userCommentDictionary[contributor.id].contributions = 1;
+            }
+        }
+        // Convert JSON dictionary to a list of users
+        return this._convertDictionaryToArray(userCommentDictionary);
+    }
+
+    _combineCommitCommentContributors(contributorData, aggregateCommentData) {
+        let combinedLists = [].concat(contributorData, aggregateCommentData);
+        // Use JSON to create a dictionary of users and their contributions
         let contributorsDictionary = {};
-        for(let contributor of allContributors) {
+        for(let contributor of combinedLists) {
+            // If user id for this contributor exists in dictionary, add new contributor's contributions to the existing contributions 
             if(contributor.id in contributorsDictionary) {
                 contributorsDictionary[contributor.id].contributions += contributor.contributions;
+            // If user id for this contributor does not exist, add the the contributor to the dictionary
             } else {
                 contributorsDictionary[contributor.id] = contributor;
             }
         }
-
-        // Convert the user dictionary into an array of user objects
-        let contributorsPlus = this._convertDictionaryToArray(contributorsDictionary);
-        contributorsPlus.sort(this._sortBy('contributions'));
-        return contributorsPlus;
-    }
-
-    /**
-     * Method to fetch all issue comments and return it in a parsed form similar in structure to the contributors data
-     * @param  {String} ownerLogin      [Name of login for repository owner]
-     * @param  {String} repoName        [Name of repository]
-     * @param  {Object} parameters      [Dictionary of parameters to be included in API request]
-     * @return {Array}                  [Array of users with data about how many issue comments they made under the field of 'contributions']
-     */
-    async getIssueCommentsParsedSync({ownerLogin, repoName, parameters={}} = {}) {
-        let issueCommentsData = await this.getIssueCommentsSync({ownerLogin, repoName, parameters});
-        // Create a dictionary with schema { gitHubUserId: userInformation } to keep track of comment count  
-        let issueCommentsParsed = {};
-        for(let comment of issueCommentsData) {
-            let contributor = comment.user;
-            if(contributor.id in issueCommentsParsed) {
-                issueCommentsParsed[contributor.id].contributions++;
-            } else {
-                issueCommentsParsed[contributor.id] = contributor;
-                issueCommentsParsed[contributor.id].contributions = 1;
-            }
-        }
-        // Convert the user dictionary into an array of user objects
-        let issueCommentsArray = this._convertDictionaryToArray(issueCommentsParsed);
-        issueCommentsArray.sort(this._sortBy('contributions'));
-        return issueCommentsArray;
-    }
-
-    /**
-     * Method to fetch all issue comments for a repository
-     * @param  {String} ownerLogin      [Name of login for repository owner]
-     * @param  {String} repoName        [Name of repository]
-     * @param  {Object} parameters      [Dictionary of parameters to be included in API request]
-     * @return {Array}                  [Array of issue comment objects]
-     */
-    async getIssueCommentsSync({ownerLogin, repoName, parameters={}} = {}) {
-        let endpoint = `https://api.github.com/repos/${ownerLogin}/${repoName}/issues/comments`;
-        return this.fetchAllSync(endpoint, parameters);
-    }
-
-    /**
-     * Method to fetch all issue comments for a repository
-     * @param  {String} ownerLogin      [Name of login for repository owner]
-     * @param  {String} repoName        [Name of repository]
-     * @param  {Object} parameters      [Dictionary of parameters to be included in API request]
-     * @return {Array}                  [Array of issue contributor objects]
-     */
-    async getContributorsSync({ownerLogin, repoName, parameters={}} = {}) {
-        let endpoint = `https://api.github.com/repos/${ownerLogin}/${repoName}/contributors`;
-        return this.fetchAllSync(endpoint, parameters);
-    }
-
-    /**
-     * Method to make request with pagination with given request url and parameters
-     * @param  {String} requestUrl      [GitHub API endpoint to request]
-     * @param  {Object} parameters      [Dictionary of parameters to be included in API request]
-     * @return {Array}                  [Array of data objects relevant to requestUrl]
-     */
-    async fetchAllSync(requestUrl, parameters={}) {
-        // Construct request url with given parameters
-        let res = await axios.get(this._constructRequestUrl(requestUrl, parameters), this.config);
-        // Return results immediataly if there is only 1 page of results.
-        if(!res.headers.link){
-            return Promise.resolve(res.data);
-        }
-        // Get page relation links from header of response and make request for next page of comments
-        let linkRelations = res.headers.link.split(',').map(function(item) {
-            return item.trim();
-        });
-        for(let linkRel of linkRelations){
-            let [link, rel] = linkRel.split(';').map(function(item) {
-                return item.trim();
-            });
-            if(rel == 'rel="next"'){
-                // Make recursive call to same method to get next page of comments
-                link = link.substring(1, link.length - 1);
-                return res.data.concat(await this.fetchAllSync(link));
-            }
-        }
-        // If no rel="next" link relation then we are on last page of data, simply return data
-        return res.data;
-    }
-
-    /**
-     * Helper method to construct request urls with given parameters
-     * @param  {Object} requestUrl      [URL endpoint to make request to]
-     * @param  {Object} parameters      [Parameters to be added to request url]
-     * @return {String}                 [The constructed url from the given url and parameters]
-     */
-    _constructRequestUrl(requestUrl, parameters={}) {
-        requestUrl = !(_.isEmpty(parameters)) ? `${requestUrl}?`: requestUrl;
-        for(let parameter in parameters){
-            requestUrl = requestUrl.concat(`${parameter}=${parameters[parameter]}&`);
-        }
-        return requestUrl;
+        // Convert JSON dictionary to a list of users
+        return this._convertDictionaryToArray(contributorsDictionary);
     }
 
     /**

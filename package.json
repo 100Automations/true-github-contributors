@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/KianBadie/github-contributor-helper#readme",
   "dependencies": {
+    "@octokit/rest": "^18.0.3",
     "axios": "^0.19.2",
     "lodash": "^4.17.19"
   },

@@ -7,21 +7,20 @@ const octokit = new Octokit({
 });
 
 (async () => {
-    let contributors = await octokit.paginate("Get /repos/:owner/:repo/contributors", {
+    let contributors = await octokit.paginate(octokit.repos.listContributors, {
         owner: "github",
         repo: "opensourcefriday"
     });
     
-    let issueComments = await octokit.paginate("GET /repos/:owner/:repo/issues/comments", {
+    let issueComments = await octokit.paginate(octokit.issues.listCommentsForRepo, {
         owner: "github",
         repo: "opensourcefriday"
-    })
-    let aggregateComments = aggregateIssueComments(issueComments);
-    aggregateComments.sort(sortBy("contributions"));
-    
-    let combinedContributors = combineCommitComment(contributors, aggregateComments);
+    });
+    let commentContributors = aggregateIssueComments(issueComments);
+
+    let combinedContributors = combineCommitComment(contributors, commentContributors);
     combinedContributors.sort(sortBy("contributions"));
-    fs.writeFileSync("./data/contributors-combined.json", JSON.stringify(combinedContributors, null, 2));
+    fs.writeFileSync("./contributors-combined.json", JSON.stringify(combinedContributors, null, 2));
 })()
 
 function aggregateIssueComments(issueComments) {
