@@ -17,7 +17,7 @@ class GitHubHelper {
      * @param  {String} org             [Name of GitHub organization]
      * @return {Array}                  [Array of GitHub users with data about how many contributions they made to an organization]
      */
-    async getContributorsOrg(org) {
+    async getContributorsOrg({org}) {
         let repos = await this.octokit.paginate(this.octokit.repos.listForOrg, {
             org
         });
@@ -37,7 +37,7 @@ class GitHubHelper {
      * @param  {String} repo            [Name of repository]
      * @return {Array}                  [Array of GitHub users with data about how many contributions they made]
      */
-    async getCombinedContributors({owner, repo} = {}) {
+    async getCombinedContributors({owner, repo}) {
         let contributors = await this.octokit.paginate(this.octokit.repos.listContributors, {
             owner,
             repo
@@ -53,12 +53,14 @@ class GitHubHelper {
      * Method to fetch contributors list based on number of issue comments
      * @param  {String} owner           [Name of login for repository owner]
      * @param  {String} repo            [Name of repository]
+     * @param  {String} since           [ISO 8601 format of latest date to fetch comments (optional)]
      * @return {Array}                  [Array of GitHub users with data about how many issue comments they made under the field of 'contributions']
      */
-    async getCommentContributors({owner, repo}) {
+    async getCommentContributors({owner, repo, since=''}) {
         let issueComments = await this.octokit.paginate(this.octokit.issues.listCommentsForRepo, {
             owner,
-            repo
+            repo,
+            since
         });
         let commentContributors = this._aggregateIssueComments(issueComments);
         commentContributors.sort(this._sortBy("contributions"));

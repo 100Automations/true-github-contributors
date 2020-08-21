@@ -11,16 +11,27 @@ const octokit = new Octokit({
         owner: "github",
         repo: "opensourcefriday"
     });
+    //fs.writeFileSync("./demo-data/contributors.json", JSON.stringify(contributors, null, 2));
     
     let issueComments = await octokit.paginate(octokit.issues.listCommentsForRepo, {
         owner: "github",
         repo: "opensourcefriday"
     });
     let commentContributors = aggregateIssueComments(issueComments);
+    commentContributors.sort(function(a, b){
+        if (a["contributions"] < b["contributions"]) {
+            return 1;
+          }
+        if (a["contributions"] > b["contributions"]) {
+            return -1;
+        }
+        return 0;
+    });
+    //fs.writeFileSync("./demo-data/commenters.json", JSON.stringify(commentContributors, null, 2));
 
     let combinedContributors = combineCommitComment(contributors, commentContributors);
     combinedContributors.sort(sortBy("contributions"));
-    fs.writeFileSync("./contributors-combined.json", JSON.stringify(combinedContributors, null, 2));
+    //fs.writeFileSync("./demo-data/contributors-combined.json", JSON.stringify(combinedContributors, null, 2));
 })()
 
 function aggregateIssueComments(issueComments) {
