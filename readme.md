@@ -1,8 +1,8 @@
 # Overview
 
-This project provides a tool I made to fetch contribution data for GitHub projects and organizations. 
+This project provides a helper tool to fetch contribution data for GitHub projects and organizations using the [octokit/rest.js](https://octokit.github.io/rest.js/v18/) package. The methods for the helper tool are asynchronous, so it can be used as promises or with JavaScripts `await` keyword.
 
-The motivation for this project stemmed from an issue within development for the Hack for LA website, where we wanted to reflect contributions of those who commit code as well as those who provide their contributions through issue comments. The GitHub API currently does not have an endpoint that can resolve this issue, but instead requires the aggregation of data from 2 different API endpoints (Contributors and Issue Comments).
+The motivation for this project stemmed from an issue within development for the Hack for LA website, where we wanted to reflect contributions of those who commit code as well as those who provide their contributions through issue comments. The GitHub API currently does not have an endpoint that can resolve this issue, but instead requires the aggregation of data from 2 different API endpoints (Contributors and Issue Comments). This project does that work for you and allows you to access that data through a single method call.
 
 ## Usage
 ### Installation
@@ -16,7 +16,7 @@ require('dotenv').config();
 const GitHubHelper = require('../github-helper');
 
 let tester = new GitHubHelper(process.env.token);
-tester.getContributorsOrg("hackforla")
+tester.getContributorsOrg({org: "hackforla"})
     .then(function(res){
         console.log(res);
     });
