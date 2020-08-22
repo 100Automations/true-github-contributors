@@ -51,3 +51,37 @@ Example of a user object:
     contributions: 160
   }
 ```
+
+## Documentation
+### .GitHubHelper(apiToken)
+Returns an instance of GitHubHelper
+- `apiToken`: API token for GitHub API
+### .getCommentContributors({ owner, repo[, since] })
+Returns an array of GitHub user objects with a `contributions` property that reflects how many issue comments a user has made.
+- `owner`: Name of login for repository owner.
+- `repo`: Name of repository.
+- `since`: ISO 8601 format of latest date to fetch comments.
+
+### .getCombinedContributors({ owner, repo })
+Returns array of GitHub user objects with a `contributions` property that reflects how many issue comments and commit contributions they made.
+- `owner`: Name of login for repository owner.
+- `repo`: Name of repository.
+
+### .getContributorsOrg({ org })
+Returns array of GitHub user objects with a `contributions` property that reflects how many issue comments and commit contributions they made.
+- `org`: Name of organization.
+
+### .getCommentContributorsOrg({ org[, since] })
+Returns an array of GitHub user objects with a `contributions` property that reflects how many issue comments a user has made to an organization.
+- `org`: Name of organization.
+- `since`: ISO 8601 format of latest date to fetch comments.
+
+### .getCommitContributorsOrg({ org })
+Returns an array of GitHub user objects with a `contributions` property that reflects how many commits a user has made to an organization.
+- `org`: Name of organization.
+
+### .getCommitContributions({owner, repo[, since]})
+Returns an array of GitHub user objects with a `contributions` property that reflects how many commits a user has made to a repo. Uses Octokit/rest.js' .listcommits endpoint which allows the use of the `since` parameter.
+- `owner`: Name of login for repository owner.
+- `repo`: Name of repository.
+- `since`: ISO 8601 format of latest date to fetch comments.
