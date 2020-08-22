@@ -22,3 +22,15 @@ tester.getContributorsOrg({org: "Public-Tree-Map"})
 .then(function(res){
     fs.writeFileSync("./data/org-contributors.json", JSON.stringify(res, null, 2));
 });
+
+// Get Comment Contributors Org Test
+tester.getCommentContributorsOrg({org: "hackforla", since: "2020-08-20T11:01:07.000Z"})
+.then(function(res){
+    fs.writeFileSync("./data/org-comment-contributors.json", JSON.stringify(res, null, 2));
+});
+
+// Get Commit Contributors Org Test
+tester.getCommitContributorsOrg({org: "Public-Tree-Map"})
+.then(function(res){
+    fs.writeFileSync("./data/org-commit-contributors.json", JSON.stringify(res, null, 2));
+});

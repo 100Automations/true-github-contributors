@@ -11,7 +11,49 @@ class GitHubHelper {
             auth: apiToken
         });
     }
+
+    /**
+     * Method to fetch contributors list based on commits across an organization
+     * @param  {String} org             [Name of GitHub organization]
+     * @return {Array}                  [Array of GitHub users with data about how many commits they made to an organization]
+     */
+    async getCommitContributorsOrg({org}) {
+        let repos = await this.octokit.paginate(this.octokit.repos.listForOrg, {
+            org
+        });
+
+        let contributors = [];
+        for(let repo of repos) {
+            let repoContributors = await this.octokit.paginate(this.octokit.repos.listContributors, {
+                owner: repo.owner.login,
+                repo: repo.name
+            });
+            contributors = contributors.concat(repoContributors);
+        }
+        contributors = this._aggregateContributions(contributors);
+        return contributors.sort(this._sortBy("contributions"));
+    }
     
+    /**
+     * Method to fetch contributors list based on number of issue comments across an organization
+     * @param  {String} org             [Name of GitHub organization]
+     * @param  {String} since           [ISO 8601 format of latest date to fetch comments (optional)]
+     * @return {Array}                  [Array of GitHub users with data about how many issue comments they made to an organization]
+     */
+    async getCommentContributorsOrg({org, since=''}) {
+        let repos = await this.octokit.paginate(this.octokit.repos.listForOrg, {
+            org
+        });
+
+        let contributors = [];
+        for(let repo of repos) {
+            let repoContributors = await this.getCommentContributors({owner: repo.owner.login, repo: repo.name, since});
+            contributors = contributors.concat(repoContributors);
+        }
+        contributors = this._aggregateContributions(contributors);
+        return contributors.sort(this._sortBy("contributions"));
+    }
+
     /**
      * Method to fetch contributors list based on number of issue comments and commits across an organization
      * @param  {String} org             [Name of GitHub organization]
@@ -22,7 +64,7 @@ class GitHubHelper {
             org
         });
         
-        let contributors = []
+        let contributors = [];
         for(let repo of repos) {
             let repoContributors = await this.getCombinedContributors({owner: repo.owner.login, repo: repo.name});
             contributors = contributors.concat(repoContributors);
