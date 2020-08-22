@@ -13,6 +13,19 @@ class GitHubHelper {
     }
 
     /**
+     * Method to fetch contributors list based on number of issue comments
+     * @param  {Object} parameters      [Parameters to be included in GitHub API request]
+     * @return {Array}                  [Array of GitHub users with data about how many commits they made based on the parameters]
+     */
+    async getCommitContributions({owner, repo, since}) {
+        let parameters = (since) ? { owner, repo, since } : { owner, repo }
+        let commits = await this.octokit.paginate(this.octokit.repos.listCommits, parameters);
+        let commitsAggregate = this._aggregateContributions(commits, "author");
+        commitsAggregate.sort(this._sortBy("contributions"));
+        return commitsAggregate;
+    }
+
+    /**
      * Method to fetch contributors list based on commits across an organization
      * @param  {String} org             [Name of GitHub organization]
      * @return {Array}                  [Array of GitHub users with data about how many commits they made to an organization]
@@ -40,7 +53,7 @@ class GitHubHelper {
      * @param  {String} since           [ISO 8601 format of latest date to fetch comments (optional)]
      * @return {Array}                  [Array of GitHub users with data about how many issue comments they made to an organization]
      */
-    async getCommentContributorsOrg({org, since=''}) {
+    async getCommentContributorsOrg({org, since}) {
         let repos = await this.octokit.paginate(this.octokit.repos.listForOrg, {
             org
         });
@@ -98,60 +111,46 @@ class GitHubHelper {
      * @param  {String} since           [ISO 8601 format of latest date to fetch comments (optional)]
      * @return {Array}                  [Array of GitHub users with data about how many issue comments they made under the field of 'contributions']
      */
-    async getCommentContributors({owner, repo, since=''}) {
-        let issueComments = await this.octokit.paginate(this.octokit.issues.listCommentsForRepo, {
-            owner,
-            repo,
-            since
-        });
-        let commentContributors = this._aggregateIssueComments(issueComments);
+    async getCommentContributors({owner, repo, since}) {
+        let parameters = (since) ? { owner, repo, since } : { owner, repo }
+        let issueComments = await this.octokit.paginate(this.octokit.issues.listCommentsForRepo, parameters);
+        let commentContributors = this._aggregateContributions(issueComments, "user");
         commentContributors.sort(this._sortBy("contributions"));
         return commentContributors;
     }
 
     /**
-     * Helper method to aggregate GitHub comment objects into a list of contributors
-     * @param  {Array} issueComments    [Array of GitHub comment objects]
-     * @return {Array}                  [Array of GitHub users with data about how many issue comments they made under the field of 'contributions']
-     */
-    _aggregateIssueComments(issueComments) {
-        // Use JSON to create a dictionary of users and their contributions 
-        let userCommentDictionary = {};
-        for(let comment of issueComments) {
-            let contributor = comment.user;
-            // If user id for this comment exists in dictionary, add a contribution to that user
-            if(contributor.id in userCommentDictionary) {
-                userCommentDictionary[contributor.id].contributions++;
-            // If user id for this comment does not exist, add user to dictionary with one contribution
-            } else {
-                userCommentDictionary[contributor.id] = contributor;
-                userCommentDictionary[contributor.id].contributions = 1;
-            }
-        }
-        // Convert JSON dictionary to a list of users
-        return this._convertDictionaryToArray(userCommentDictionary);
-    }
-
-    /**
-     * Helper method to aggregate GitHub contributors
-     * @param  {Array} contributorData          [Array of GitHub contributors based on commits]
-     * @param  {Array} aggregateCommentData     [Array of GitHub contributors based on issue comments]
+     * Helper method to aggregate GitHub contributions
+     * @param  {Array}  contributions           [Array of GitHub contribution objects or contributor objects]
+     * @param  {String} contributionIdentifier  [Porperty name used in contribution object that represents user (leave blank if contributions is an array of contributor objects)]
      * @return {Array}                          [Array of GitHub users with data about how many contributions they made]
      */
-    _aggregateContributions(contributorsList) {
-        // Use JSON to create a dictionary of users and their contributions
-        let contributorsDictionary = {};
-        for(let contributor of contributorsList) {
-            // If user id for this contributor exists in dictionary, add new contributor's contributions to the existing contributions 
-            if(contributor.id in contributorsDictionary) {
-                contributorsDictionary[contributor.id].contributions += contributor.contributions;
-            // If user id for this contributor does not exist, add the the contributor to the dictionary
+    _aggregateContributions(contributions, contributionIdentifier) {
+        // Use JSON to create a dictionary of users and their contributions 
+        let contributorDictionary = {};
+        for(let contribution of contributions) {
+            let contributor = (contributionIdentifier) ? contribution[contributionIdentifier] : contribution;
+            // Contributions can have a null author, so we should ignore those.
+            if(!contributor) continue;
+            // If user id for this comment exists in dictionary, add a contribution to that user
+            if(contributor.id in contributorDictionary) {
+                if(contributor.contributions) {
+                    contributorDictionary[contributor.id].contributions += contributor.contributions;
+                } else {
+                    contributorDictionary[contributor.id].contributions++;
+                }
+            // If user id for this comment does not exist, add user to dictionary with one contribution
             } else {
-                contributorsDictionary[contributor.id] = contributor;
+                if(contributor.contributions) {
+                    contributorDictionary[contributor.id] = contributor
+                } else {
+                    contributorDictionary[contributor.id] = contributor;
+                    contributorDictionary[contributor.id].contributions = 1; 
+                }
             }
         }
         // Convert JSON dictionary to a list of users
-        return this._convertDictionaryToArray(contributorsDictionary);
+        return this._convertDictionaryToArray(contributorDictionary);
     }
 
     /**

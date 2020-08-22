@@ -34,3 +34,10 @@ tester.getCommitContributorsOrg({org: "Public-Tree-Map"})
 .then(function(res){
     fs.writeFileSync("./data/org-commit-contributors.json", JSON.stringify(res, null, 2));
 });
+
+// Get Commits test
+// since: "2020-08-16T11:01:07.000Z"
+tester.getCommitContributions({owner: "hackforla", repo: "website"})
+.then(function(res){
+    fs.writeFileSync("./data/commits.json", JSON.stringify(res, null, 2));
+});
