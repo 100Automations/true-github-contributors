@@ -12,12 +12,26 @@ class GitHubHelper {
         });
     }
 
+    async getCommitContributorsOrg({ org, since }) {
+        let repos = await this.octokit.paginate(this.octokit.repos.listForOrg, {
+            org
+        });
+
+        let contributors = [];
+        for(let repo of repos) {
+            let repoContributors = await this.getCommitContributors({owner: repo.owner.login, repo: repo.name, since});
+            contributors = contributors.concat(repoContributors);
+        }
+        contributors = this._aggregateContributions(contributors);
+        return contributors.sort(this._sortBy("contributions"));
+    }
+
     /**
      * Method to fetch contributors list based on number of issue comments
      * @param  {Object} parameters      [Parameters to be included in GitHub API request]
      * @return {Array}                  [Array of GitHub users with data about how many commits they made based on the parameters]
      */
-    async getCommitContributions({owner, repo, since}) {
+    async getCommitContributors({owner, repo, since}) {
         let parameters = (since) ? { owner, repo, since } : { owner, repo }
         let commits = await this.octokit.paginate(this.octokit.repos.listCommits, parameters);
         let commitsAggregate = this._aggregateContributions(commits, "author");
@@ -30,7 +44,7 @@ class GitHubHelper {
      * @param  {String} org             [Name of GitHub organization]
      * @return {Array}                  [Array of GitHub users with data about how many commits they made to an organization]
      */
-    async getCommitContributorsOrg({org}) {
+    async getContributorsOrg({org}) {
         let repos = await this.octokit.paginate(this.octokit.repos.listForOrg, {
             org
         });
@@ -60,7 +74,8 @@ class GitHubHelper {
 
         let contributors = [];
         for(let repo of repos) {
-            let repoContributors = await this.getCommentContributors({owner: repo.owner.login, repo: repo.name, since});
+            let parameters = (since) ? { owner: repo.owner.login, repo: repo.name, since } : { owner: repo.owner.login, repo: repo.name }
+            let repoContributors = await this.getCommentContributors(parameters);
             contributors = contributors.concat(repoContributors);
         }
         contributors = this._aggregateContributions(contributors);
@@ -72,14 +87,14 @@ class GitHubHelper {
      * @param  {String} org             [Name of GitHub organization]
      * @return {Array}                  [Array of GitHub users with data about how many contributions they made to an organization]
      */
-    async getContributorsOrg({org}) {
+    async getCommitCommentContributorsOrg({org}) {
         let repos = await this.octokit.paginate(this.octokit.repos.listForOrg, {
             org
         });
         
         let contributors = [];
         for(let repo of repos) {
-            let repoContributors = await this.getCombinedContributors({owner: repo.owner.login, repo: repo.name});
+            let repoContributors = await this.getCommitCommentContributors({owner: repo.owner.login, repo: repo.name});
             contributors = contributors.concat(repoContributors);
         }
         contributors = this._aggregateContributions(contributors);
@@ -92,7 +107,7 @@ class GitHubHelper {
      * @param  {String} repo            [Name of repository]
      * @return {Array}                  [Array of GitHub users with data about how many contributions they made]
      */
-    async getCombinedContributors({owner, repo}) {
+    async getCommitCommentContributors({owner, repo}) {
         let contributors = await this.octokit.paginate(this.octokit.repos.listContributors, {
             owner,
             repo
