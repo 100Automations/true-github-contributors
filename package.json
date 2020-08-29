@@ -4,7 +4,7 @@
   "description": "Module to assists with GitHub contributor data using the GitHub API.",
   "main": "index.js",
   "scripts": {
-    "test": "node test/helper-test.js"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -22,6 +22,11 @@
     "lodash": "^4.17.19"
   },
   "devDependencies": {
-    "dotenv": "^8.2.0"
+    "dotenv": "^8.2.0",
+    "jest": "^26.4.2"
+  },
+  "jest": {
+    "collectCoverage": true,
+    "coverageReporters": ["html"]
   }
 }

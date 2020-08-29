@@ -22,8 +22,7 @@ class GitHubHelper {
             let repoContributors = await this.getCommitContributors({owner: repo.owner.login, repo: repo.name, since});
             contributors = contributors.concat(repoContributors);
         }
-        contributors = this._aggregateContributions(contributors);
-        return contributors.sort(this._sortBy("contributions"));
+        return this._aggregateContributions(contributors);
     }
 
     /**
@@ -34,9 +33,7 @@ class GitHubHelper {
     async getCommitContributors({owner, repo, since}) {
         let parameters = (since) ? { owner, repo, since } : { owner, repo }
         let commits = await this.octokit.paginate(this.octokit.repos.listCommits, parameters);
-        let commitsAggregate = this._aggregateContributions(commits, "author");
-        commitsAggregate.sort(this._sortBy("contributions"));
-        return commitsAggregate;
+        return this._aggregateContributions(commits, "author");
     }
 
     /**
@@ -57,8 +54,7 @@ class GitHubHelper {
             });
             contributors = contributors.concat(repoContributors);
         }
-        contributors = this._aggregateContributions(contributors);
-        return contributors.sort(this._sortBy("contributions"));
+        return this._aggregateContributions(contributors);
     }
     
     /**
@@ -78,8 +74,7 @@ class GitHubHelper {
             let repoContributors = await this.getCommentContributors(parameters);
             contributors = contributors.concat(repoContributors);
         }
-        contributors = this._aggregateContributions(contributors);
-        return contributors.sort(this._sortBy("contributions"));
+        return this._aggregateContributions(contributors);
     }
 
     /**
@@ -97,8 +92,7 @@ class GitHubHelper {
             let repoContributors = await this.getCommitCommentContributors({owner: repo.owner.login, repo: repo.name});
             contributors = contributors.concat(repoContributors);
         }
-        contributors = this._aggregateContributions(contributors);
-        return contributors.sort(this._sortBy("contributions"));
+        return this._aggregateContributions(contributors);
     }
 
     /**
@@ -114,9 +108,7 @@ class GitHubHelper {
         });
         let commentContributors = await this.getCommentContributors({owner, repo});
 
-        let combinedContributors = this._aggregateContributions([].concat(contributors, commentContributors));
-        combinedContributors.sort(this._sortBy("contributions"));
-        return combinedContributors;
+        return this._aggregateContributions([].concat(contributors, commentContributors));
     }
 
     /**
@@ -129,43 +121,57 @@ class GitHubHelper {
     async getCommentContributors({owner, repo, since}) {
         let parameters = (since) ? { owner, repo, since } : { owner, repo }
         let issueComments = await this.octokit.paginate(this.octokit.issues.listCommentsForRepo, parameters);
-        let commentContributors = this._aggregateContributions(issueComments, "user");
-        commentContributors.sort(this._sortBy("contributions"));
-        return commentContributors;
+        return this._aggregateContributions(issueComments, "user");
     }
 
     /**
-     * Helper method to aggregate GitHub contributions
-     * @param  {Array}  contributions           [Array of GitHub contribution objects or contributor objects]
-     * @param  {String} contributionIdentifier  [Porperty name used in contribution object that represents user (leave blank if contributions is an array of contributor objects)]
+     * Helper method to aggregate GitHub contributor objects
+     * @param  {Array}  contributors           [Array of GitHub contributor objects]
+     * @return {Array}                         [Array of GitHub users with data about how many contributions they made]
+     */
+    _aggregateContributors(contributors) {
+        // Use JSON to create a dictionary of users and their contributions
+        let contributorDictionary = {};
+        for(let contributor of contributors) {
+            if(!contributor.hasOwnProperty("contributions")) throw `Error: contributor ${contributor} has no property contributions`;
+            // If user id for this comment exists in dictionary, add a contribution to that user
+            if(contributor.id in contributorDictionary) {
+                contributorDictionary[contributor.id].contributions += contributor.contributions;
+            // If user id for this comment does not exist, add user to dictionary
+            } else {
+                contributorDictionary[contributor.id] = contributor
+            }
+        }
+        // Convert JSON dictionary to a list of users
+        return this._contributorDictToArr(contributorDictionary);
+    }
+
+    /**
+     * Helper method to aggregate GitHub contribution objects
+     * @param  {Array}  contributions           [Array of GitHub contribution objects]
+     * @param  {String} contributionIdentifier  [Porperty name used in contribution object that represents user]
      * @return {Array}                          [Array of GitHub users with data about how many contributions they made]
      */
     _aggregateContributions(contributions, contributionIdentifier) {
-        // Use JSON to create a dictionary of users and their contributions 
+        if(!contributionIdentifier) throw "Error: no contribution identifier was given to _aggregateContributions";
+        // Use JSON to create a dictionary of users and their contributions
         let contributorDictionary = {};
         for(let contribution of contributions) {
-            let contributor = (contributionIdentifier) ? contribution[contributionIdentifier] : contribution;
+            if(!contribution.hasOwnProperty(contributionIdentifier)) throw `Error: contribution ${contribution} has no property ${contributionIdentifier}`;
+            let contributor = contribution[contributionIdentifier];
             // Contributions can have a null author, so we should ignore those.
             if(!contributor) continue;
             // If user id for this comment exists in dictionary, add a contribution to that user
             if(contributor.id in contributorDictionary) {
-                if(contributor.contributions) {
-                    contributorDictionary[contributor.id].contributions += contributor.contributions;
-                } else {
-                    contributorDictionary[contributor.id].contributions++;
-                }
+                contributorDictionary[contributor.id].contributions++;
             // If user id for this comment does not exist, add user to dictionary with one contribution
             } else {
-                if(contributor.contributions) {
-                    contributorDictionary[contributor.id] = contributor
-                } else {
-                    contributorDictionary[contributor.id] = contributor;
-                    contributorDictionary[contributor.id].contributions = 1; 
-                }
+                contributorDictionary[contributor.id] = contributor
+                contributorDictionary[contributor.id].contributions = 1;
             }
         }
         // Convert JSON dictionary to a list of users
-        return this._convertDictionaryToArray(contributorDictionary);
+        return this._contributorDictToArr(contributorDictionary);
     }
 
     /**
@@ -173,30 +179,28 @@ class GitHubHelper {
      * @param  {Object} dictionary      [JSON object to be converted to array]
      * @return {Array}                  [Array of values corresponding to the keys of the dictionary object]
      */
-    _convertDictionaryToArray(dictionary) {
+    _contributorDictToArr(dictionary) {
+        if(!dictionary) throw `Error: user dictionary is not defined`;
         let array = [];
         for(let item in dictionary) {
             array.push(dictionary[item]);
         }
-        return array;
+        return array.sort(this._sortByContributions);
     }
 
     /**
-     * Helper method to provide a function to sorting functions based on the provided parameter
-     * @param  {String} parameter       [Parameter to sort by]
-     * @return {Function}               [A function that can be passed to JavaScripts sort() method]
+     * Helper method to provide a sorting function based on a property called "contributions"
+     * @return {Integer}               [An integer used to determine order between contribution comparison]
      */
-    _sortBy(parameter) {
-        let sortFunction = function(a, b){
-            if (a[parameter] < b[parameter]) {
-                return 1;
-              }
-            if (a[parameter] > b[parameter]) {
-                return -1;
-            }
-            return 0;
+    _sortByContributions(a, b) {
+        if(a["contributions"] == undefined || b["contributions"] == undefined) throw `Error: contibutions on is not defined on all user objects`;
+        if (a["contributions"] < b["contributions"]) {
+            return 1;
         }
-        return sortFunction
+        if (a["contributions"] > b["contributions"]) {
+            return -1;
+        }
+        return 0;
     }
 }
 
