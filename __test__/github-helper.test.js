@@ -1,5 +1,8 @@
-const GitHubHelper = require("../github-helper");
 require("dotenv").config();
+var sinon = require('sinon');
+
+const GitHubHelper = require("../github-helper");
+
 const githubHelper = new GitHubHelper(process.env.token);
 
 describe("_sortByContributions()", () => {
@@ -429,5 +432,12 @@ describe("_aggregateContributors()", () => {
         ];
 
         expect(githubHelper._aggregateContributors(input)).toEqual(output);
+    });
+});
+
+describe.skip("getCommentContributors()", () => {
+    test("testing stub", () => {
+        sinon.stub(githubHelper.octokit, "paginate").returns("hello world");
+        githubHelper.getCommentContributors({repo: "testRepo", owner: "testOwner"});
     });
 });
