@@ -19,12 +19,12 @@
   "dependencies": {
     "@octokit/rest": "^18.0.3",
     "axios": "^0.19.2",
-    "lodash": "^4.17.19",
-    "sinon": "^9.0.3"
+    "lodash": "^4.17.19"
   },
   "devDependencies": {
     "dotenv": "^8.2.0",
-    "jest": "^26.4.2"
+    "jest": "^26.4.2",
+    "sinon": "^9.0.3"
   },
   "jest": {
     "collectCoverage": true,

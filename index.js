@@ -1,1 +1,1 @@
-module.exports = require('./github-helper');
+module.exports = require('./contributors-mixin');
