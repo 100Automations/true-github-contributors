@@ -1,33 +1,43 @@
-# Overview
+# True GitHub Contributors
+## Overview
+This project provides a helper tool to fetch contributor data sets for GitHub repositories and organizations using by extending the [octokit/rest.js](https://octokit.github.io/rest.js/v18/) package.
 
-This project provides a helper tool to fetch contribution data for GitHub projects and organizations using the [octokit/rest.js](https://octokit.github.io/rest.js/v18/) package. The methods for the helper tool are asynchronous, so it can be used as promises or with JavaScripts `await` keyword.
+The motivation for this project stemmed from an issue within development for the [Hack for LA website](https://www.hackforla.org/projects/website), where we wanted to reflect contributions of those who commit code as well as those who provide their contributions through issue comments. This resulted in an script that fetched the data from the GitHub API (Contributors and Repository Issue Comments endpoints) and aggregated the responses. If someone else would like to fetch the similar data sets (and more), this tool allows extension of octokit/rest.js so they don't have to recreate the script for themselves.
 
-The motivation for this project stemmed from an issue within development for the Hack for LA website, where we wanted to reflect contributions of those who commit code as well as those who provide their contributions through issue comments. The GitHub API currently does not have an endpoint that can resolve this issue, but instead requires the aggregation of data from 2 different API endpoints (Contributors and Issue Comments). This project does that work for you and allows you to access that data through a single method call.
+The benefit of including issue comments in contribution data is that a more complete data set of contributors is given. With GitHub having features like project boards and issue comments, GitHub has opened up more ways for different roles to contribute code. Designers post screenshots of mock ups, project managers communicate critical information to team members, and even developers have productive discussions about the code they are writing. By including these comments as contributions, a clearer picture of who is/has been active in the project is shown.
 
-## Usage
-### Installation
-As of right now, this is not a package available on npm. So to use, you would have to download the `github-helper.js` file locally as well as have the npm package `@octokit/rest` installed sine it is a dependency of the `GitHubHelper` class provided by `github-helper.js`.
+## Current State
+Currently, the Hack for LA website uses GitHub Actions to run a [script](https://github.com/hackforla/website/blob/gh-pages/github-actions/get-project-data.js). The script uses a HTTP request library to make calls to the API directly and performs the aggregation of the data in way that could be cleaner.
 
-### Example
-The `GitHubHelper` class takes a GitHub API token in it's constructor. This is used to authenticate API request.
+In this repository, I am developing a mixin for octokit/rest.js that fetches the desired data sets and more. This will allow users of the mixin to still use octokit/rest.js as they normally do and extend it's functionality with a minimal footprint. 
 
-```javascript
-require('dotenv').config();
-const GitHubHelper = require('../github-helper');
+## Future Development
+The endpoints created with this mixin are currently being tested. I would also like this mixin to be available through [npm](https://www.npmjs.com/). This would make the process of using the mixin more convenient for those in node environments.
 
-let tester = new GitHubHelper(process.env.token);
-tester.getContributorsOrg({org: "hackforla"})
-    .then(function(res){
-        console.log(res);
-    });
-```
+## Stakeholders
+- Project Leadership: Able to see who is contributing to repositorie/organizations.
+- Project contributors: Efforts made through issue comments will be reflected in contributor sets. 
 
-All methods that fetch contributors return an array of contributors of the same structure (see "Example of a user object" below). The methods that fetch contribution data are:
-- **GitHubHelper.getContributorsOrg()**: Reflects contributions from the [Contributors](https://developer.github.com/v3/repos/#list-repository-contributors) and [Repo Issue Comments](https://developer.github.com/v3/issues/comments/#list-issue-comments-for-a-repository) endpoints from the GitHub API across all repositories in an organization.
-- **GitHubHelper.getCombinedContributors()**: Reflects contributions from the [Contributors](https://developer.github.com/v3/repos/#list-repository-contributors) and [Repo Issue Comments](https://developer.github.com/v3/issues/comments/#list-issue-comments-for-a-repository) endpoints from the GitHub API for a single repository.
-- **GitHubHelper.getCommentContributors()**: Reflects contributions from the [Repo Issue Comments](https://developer.github.com/v3/issues/comments/#list-issue-comments-for-a-repository) endpoints from the GitHub API for a single repository.
+## Anticipated outcomes
+For developers and project leaders to have an easier/quicker way to access the contribution data created through this mixin.
 
-Example of a user object: 
+## Resources/Instructions
+Soon to come
+
+## Language
+JavaScript
+
+## Platform
+Any JavaScript enviroment that is using octokit/rest.js.
+
+## Automation triggers
+Because this is an extension of octokit/rest.js, it is used in a way that is identical to octokit/rest.js. That is, the API Client can be used in single use scripts, automated scripts, or in any JavaScript environment.
+
+## Input required
+The goal of this mixin is to make it feel like it's naturally a part of octokit/rest.js. Because of that, it also takes input similarly to how octokit/rest.js: a set of parameters that define the desired organiation/repo and additional parameters to further define what you want the data set to represent. In the future, there will be detailed documentation on how to use the mixin.
+
+## Output
+Each of the endpoints will return an arraay of contributor objects that mimic the structure of the "List Repository Contributors" [endpoint](https://developer.github.com/v3/repos/#list-repository-contributors) of the GitHub API:
 ```javascript
 {
     login: 'KianBadie',
@@ -51,37 +61,4 @@ Example of a user object:
     contributions: 160
   }
 ```
-
-## Documentation
-### .GitHubHelper(apiToken)
-Returns an instance of GitHubHelper
-- `apiToken`: API token for GitHub API
-### .getCommentContributors({ owner, repo[, since] })
-Returns an array of GitHub user objects with a `contributions` property that reflects how many issue comments a user has made.
-- `owner`: Name of login for repository owner.
-- `repo`: Name of repository.
-- `since`: ISO 8601 format of latest date to fetch comments.
-
-### .getCombinedContributors({ owner, repo })
-Returns array of GitHub user objects with a `contributions` property that reflects how many issue comments and commit contributions they made.
-- `owner`: Name of login for repository owner.
-- `repo`: Name of repository.
-
-### .getContributorsOrg({ org })
-Returns array of GitHub user objects with a `contributions` property that reflects how many issue comments and commit contributions they made.
-- `org`: Name of organization.
-
-### .getCommentContributorsOrg({ org[, since] })
-Returns an array of GitHub user objects with a `contributions` property that reflects how many issue comments a user has made to an organization.
-- `org`: Name of organization.
-- `since`: ISO 8601 format of latest date to fetch comments.
-
-### .getCommitContributorsOrg({ org })
-Returns an array of GitHub user objects with a `contributions` property that reflects how many commits a user has made to an organization.
-- `org`: Name of organization.
-
-### .getCommitContributions({owner, repo[, since]})
-Returns an array of GitHub user objects with a `contributions` property that reflects how many commits a user has made to a repo. Uses Octokit/rest.js' .listcommits endpoint which allows the use of the `since` parameter.
-- `owner`: Name of login for repository owner.
-- `repo`: Name of repository.
-- `since`: ISO 8601 format of latest date to fetch comments.
+Every user object will have additional endpoints that can give more data about each contributor, as well as a `contribution` property that represents the number of contributions a user has made to a repository or organization.
