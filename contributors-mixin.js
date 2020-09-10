@@ -1,6 +1,24 @@
 let contributorsMixin = {
 
     /**
+     * Method to fetch contributors list based on number of issue comments across an organization
+     * @param  {String} parameters      [Parameters to be used in GitHub API request]
+     * @return {Array}                  [Array of GitHub users with data about how many issue comments they made to an organization]
+     */
+    async listCommentContributorsForOrg(parameters) {
+        let desiredParams = this._createParamsFromObject(["org", "type"], parameters);
+        let repos = await this.paginate(this.repos.listForOrg, desiredParams);
+
+        let contributors = [];
+        for(let repo of repos) {
+            let commentParameters = { owner: repo.owner.login, repo: repo.name, since: parameters.since };
+            let repoContributors = await this.listCommentContributors(commentParameters);
+            contributors = contributors.concat(repoContributors);
+        }
+        return this._aggregateContributors(contributors);
+    },
+
+    /**
      * Method to fetch contributors list based on number of issue comments and commits
      * @param  {String} parameters      [Parameters to be used in GitHub API request]
      * @return {Array}                  [Array of GitHub users with data about how many contributions they made]
