@@ -342,7 +342,7 @@ describe("listCommentContributors()", () => {
     });
 
     test("should return an empty array when there are no issue comments", async () => {
-        sinon.stub(octokit, "paginate").returns([]);
+        sinon.stub(octokit, "paginate").resolves([]);
         const input = { owner: "test", repo: "test" };
 
         const output = [];
@@ -351,7 +351,7 @@ describe("listCommentContributors()", () => {
     });
 
     test("should return array of length one when there is only one comment contributor", async () => {
-        sinon.stub(octokit, "paginate").returns([
+        sinon.stub(octokit, "paginate").resolves([
             { id: 1, user: { id: 1 } }
         ]);
 
@@ -365,7 +365,7 @@ describe("listCommentContributors()", () => {
     });
 
     test("should return a list of contributor objects", async () => {
-        sinon.stub(octokit, "paginate").returns([
+        sinon.stub(octokit, "paginate").resolves([
             { id: 1, user: { id: 1 } },
             { id: 2, user: { id: 2 } },
             { id: 3, user: { id: 4 } },
@@ -390,7 +390,7 @@ describe("listCommentContributors()", () => {
 
     test("should call paginate without unwanted params", async () => {
         const paginateStub = sinon.stub(octokit, "paginate");
-        paginateStub.returns([
+        paginateStub.resolves([
             { id: 1, user: { id: 1 } },
             { id: 2, user: { id: 2 } },
             { id: 3, user: { id: 4 } },
@@ -428,7 +428,7 @@ describe("listCommitContributors()", () => {
     });
 
     test("should return a single contributor if there is only one commit", async () => {
-        sinon.stub(octokit, "paginate").returns([
+        sinon.stub(octokit, "paginate").resolves([
             { node_id: 1, author: { id: 1 } }
         ]);
         const input = { owner: "test", repo: "test"};
@@ -441,7 +441,7 @@ describe("listCommitContributors()", () => {
     });
 
     test("should aggregate a list of commit objects", async () => {
-        sinon.stub(octokit, "paginate").returns([
+        sinon.stub(octokit, "paginate").resolves([
             { node_id: 1, author: { id: 1 } },
             { node_id: 2, author: { id: 1 } },
             { node_id: 3, author: { id: 2 } },
@@ -465,7 +465,7 @@ describe("listCommitContributors()", () => {
 
     test("should call paginate without unwanted params", async () => {
         const paginateStub = sinon.stub(octokit, "paginate");
-        paginateStub.returns([
+        paginateStub.resolves([
             { node_id: 1, author: { id: 1 } },
             { node_id: 2, author: { id: 1 } },
             { node_id: 3, author: { id: 2 } },
@@ -508,11 +508,11 @@ describe("listCommitCommentContributors()", () => {
     });
 
     test("should call listCommitContributors() and not paginate when since is a parameter", async () => {
-        const listCommitsStub = sinon.stub(octokit, "listCommitContributors").returns([
+        const listCommitsStub = sinon.stub(octokit, "listCommitContributors").resolves([
             { id: 1, contributions: 1 },
         ]);
         const paginateStub = sinon.stub(octokit, "paginate");
-        sinon.stub(octokit, "listCommentContributors").returns([]);
+        sinon.stub(octokit, "listCommentContributors").resolves([]);
 
         const input = { owner: "test", repo: "test", since: "test" };
 
@@ -523,11 +523,11 @@ describe("listCommitCommentContributors()", () => {
     });
 
     test("should call paginate and not listCommitContributors() when since is not a parameter", async () => {
-        const paginateStub = sinon.stub(octokit, "paginate").returns([
+        const paginateStub = sinon.stub(octokit, "paginate").resolves([
             { id: 1, contributions: 1 },
         ]);
         const listCommitsStub = sinon.stub(octokit, "listCommitContributors")
-        sinon.stub(octokit, "listCommentContributors").returns([]);
+        sinon.stub(octokit, "listCommentContributors").resolves([]);
 
         const input = { owner: "test", repo: "test" };
 
@@ -538,7 +538,7 @@ describe("listCommitCommentContributors()", () => {
     });
 
     test("should be equal with commit contributions when there are no comments", async () => {
-        sinon.stub(octokit, "paginate").returns([
+        sinon.stub(octokit, "paginate").resolves([
             { id: 3, contributions: 24 },
             { id: 5, contributions: 20 },
             { id: 1, contributions: 15 },
@@ -546,7 +546,7 @@ describe("listCommitCommentContributors()", () => {
             { id: 2, contributions: 7 },
             { id: 7, contributions: 7 }
         ]);
-        sinon.stub(octokit, "listCommentContributors").returns([]);
+        sinon.stub(octokit, "listCommentContributors").resolves([]);
 
         const input = { owner: "test", repo: "test" };
 
@@ -563,7 +563,7 @@ describe("listCommitCommentContributors()", () => {
     });
 
     test("should aggregate commit and comment contributions", async () => {
-        sinon.stub(octokit, "paginate").returns([
+        sinon.stub(octokit, "paginate").resolves([
             { id: 3, contributions: 24 },
             { id: 5, contributions: 20 },
             { id: 1, contributions: 15 },
@@ -571,7 +571,7 @@ describe("listCommitCommentContributors()", () => {
             { id: 2, contributions: 7 }
         ]);
 
-        sinon.stub(octokit, "listCommentContributors").returns([
+        sinon.stub(octokit, "listCommentContributors").resolves([
             { id: 7, contributions: 9 },
             { id: 1, contributions: 3 },
             { id: 2, contributions: 2 },
@@ -598,14 +598,14 @@ describe("listCommitCommentContributors()", () => {
     test("should throw away unwanted params", async () => {
         const listCommitsStub = sinon.stub(octokit, "listCommitContributors");
         const listCommentsStub = sinon.stub(octokit, "listCommentContributors");
-        listCommitsStub.returns([
+        listCommitsStub.resolves([
             { id: 3, contributions: 24 },
             { id: 5, contributions: 20 },
             { id: 1, contributions: 15 },
             { id: 4, contributions: 12 },
             { id: 2, contributions: 7 }
         ]);
-        listCommentsStub.returns([]);
+        listCommentsStub.resolves([]);
         const input = {
             owner: "test", 
             repo: "test", 
