@@ -2,7 +2,6 @@ require("dotenv").config();
 const sinon = require('sinon');
 const { Octokit } = require("@octokit/rest");
 const contributorsMixin = require("../contributors-mixin");
-const { _sortByContributions } = require("../contributors-mixin");
 
 Object.assign(Octokit.prototype, contributorsMixin);
 const octokit = new Octokit({ auth: process.env.token });
