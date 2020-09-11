@@ -963,3 +963,77 @@ describe("listCommitContributorsForOrg()", () => {
         expect(await octokit.listCommitContributorsForOrg(input)).toEqual(output);
     });
 });
+
+describe("listCommitCommentContributorsForOrg()", () => {
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    test("should return empty array for empty org", async () => {
+        sinon.stub(octokit, "paginate").resolves([]);
+
+        const input = { org: "test", type: "test" };
+
+        const output = [];
+
+        expect(await octokit.listCommitCommentContributorsForOrg(input)).toEqual(output);
+    });
+
+    test("should work with 1 repo", async () => {
+        sinon.stub(octokit, "paginate").resolves([
+            { owner: { login: "test" }, name: "repo1" }
+        ]);
+        sinon.stub(octokit, "listCommitCommentContributors").resolves([
+            {id: 1, contributions: 15},
+            {id: 2, contributions: 10},
+            {id: 3, contributions: 5}
+        ]);
+
+        const input = { org: "test", type: "test" };
+
+        const output = [
+            {id: 1, contributions: 15},
+            {id: 2, contributions: 10},
+            {id: 3, contributions: 5}
+        ];
+
+        expect(await octokit.listCommitCommentContributorsForOrg(input)).toEqual(output);
+    });
+
+    test("should aggregate commit contributions", async () => {
+        sinon.stub(octokit, "paginate").resolves([
+            { owner: { login: "test" }, name: "repo1" },
+            { owner: { login: "test" }, name: "repo2" },
+            { owner: { login: "test" }, name: "repo3" },
+            { owner: { login: "test" }, name: "repo4" }
+        ]);
+        const commitCommentContributorsStub = sinon.stub(octokit, "listCommitCommentContributors")
+        commitCommentContributorsStub.onCall(0).resolves([
+            { id: 1, contributions: 5 },
+            { id: 2, contributions: 3 },
+            { id: 3, contributions: 1 }
+        ]);
+        commitCommentContributorsStub.onCall(1).resolves([
+            { id: 1, contributions: 7 },
+            { id: 4, contributions: 5 },
+            { id: 3, contributions: 2 }
+        ]);
+        commitCommentContributorsStub.onCall(2).resolves([]);
+        commitCommentContributorsStub.onCall(3).resolves([
+            { id: 5, contributions: 4 },
+            { id: 6, contributions: 1 }
+        ]);
+        const input = { org: "test", type: "test" };
+
+        const output = [
+            { id: 1, contributions: 12 },
+            { id: 4, contributions: 5 },
+            { id: 5, contributions: 4 },
+            { id: 2, contributions: 3 },
+            { id: 3, contributions: 3 },
+            { id: 6, contributions: 1 },
+        ];
+
+        expect(await octokit.listCommitCommentContributorsForOrg(input)).toEqual(output);
+    });
+});
