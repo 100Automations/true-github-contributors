@@ -357,6 +357,57 @@ describe("listCommentContributors()", () => {
         sinon.restore();
     });
 
+    test("should call paginate withcorrect parameters", async () => {
+        const paginateStub = sinon.stub(octokit, "paginate");
+        paginateStub.resolves([]);
+        const inputParams = {
+            owner: "test", 
+            repo: "test", 
+            since: "test", 
+            sort: "test", 
+            direction: "test",
+            per_page: 100,
+            page: 5
+        };
+
+        const expectedParams = {
+            owner: "test",
+            repo: "test",
+            since: "test"
+        };
+
+        await octokit.listCommentContributors(inputParams);
+
+        sinon.assert.calledWith(paginateStub, octokit.issues.listCommentsForRepo, expectedParams);
+    });
+
+    test("should leave input parameters unchanged", async () => {
+        sinon.stub(octokit, "paginate").resolves([]);
+        const inputParams = {
+            owner: "test", 
+            repo: "test", 
+            since: "test", 
+            sort: "test", 
+            direction: "test",
+            per_page: 100,
+            page: 5
+        };
+
+        const inputParamsCopy = {
+            owner: "test", 
+            repo: "test", 
+            since: "test", 
+            sort: "test", 
+            direction: "test",
+            per_page: 100,
+            page: 5
+        };
+
+        await octokit.listCommentContributors(inputParams);
+
+        expect(inputParams).toEqual(inputParamsCopy);
+    });
+
     test("should return an empty array when there are no issue comments", async () => {
         sinon.stub(octokit, "paginate").resolves([]);
         const input = { owner: "test", repo: "test" };
@@ -368,7 +419,7 @@ describe("listCommentContributors()", () => {
 
     test("should return array of length one when there is only one comment contributor", async () => {
         sinon.stub(octokit, "paginate").resolves([
-            { id: 1, user: { id: 1 } }
+            { id: 200, user: { id: 1 } }
         ]);
 
         const input = { owner: "test", repo: "test" };
@@ -380,21 +431,26 @@ describe("listCommentContributors()", () => {
         expect(await octokit.listCommentContributors(input)).toEqual(output);
     });
 
-    test("should return a list of contributor objects", async () => {
+    test("should aggregate, sort, and return a list of comment contributors", async () => {
         sinon.stub(octokit, "paginate").resolves([
-            { id: 1, user: { id: 1 } },
-            { id: 2, user: { id: 2 } },
-            { id: 3, user: { id: 4 } },
-            { id: 4, user: { id: 2 } },
-            { id: 5, user: { id: 3 } },
-            { id: 6, user: { id: 1 } },
-            { id: 7, user: { id: 3 } },
-            { id: 8, user: { id: 1 } }
+            { id: 201, user: { id: 1 } },
+            { id: 202, user: { id: 2 } },
+            { id: 203, user: { id: 4 } },
+            { id: 204, user: { id: 5 } },
+            { id: 205, user: { id: 2 } },
+            { id: 206, user: { id: 5 } },
+            { id: 207, user: { id: 3 } },
+            { id: 208, user: { id: 1 } },
+            { id: 209, user: { id: 3 } },
+            { id: 210, user: { id: 1 } },
+            { id: 211, user: { id: 5 } },
+            { id: 212, user: { id: 5 } },
         ]);
 
         const input = { owner: "test", repo: "test" };
 
         const output = [
+            {id: 5, contributions: 4 },
             {id: 1, contributions: 3 },
             {id: 2, contributions: 2 },
             {id: 3, contributions: 2 },
@@ -402,39 +458,6 @@ describe("listCommentContributors()", () => {
         ];
 
         expect(await octokit.listCommentContributors(input)).toEqual(output);
-    });
-
-    test("should call paginate without unwanted params", async () => {
-        const paginateStub = sinon.stub(octokit, "paginate");
-        paginateStub.resolves([
-            { id: 1, user: { id: 1 } },
-            { id: 2, user: { id: 2 } },
-            { id: 3, user: { id: 4 } },
-            { id: 4, user: { id: 2 } },
-            { id: 5, user: { id: 3 } },
-            { id: 6, user: { id: 1 } },
-            { id: 7, user: { id: 3 } },
-            { id: 8, user: { id: 1 } }
-        ]);
-        const input = {
-            owner: "test", 
-            repo: "test", 
-            since: "test", 
-            sort: "test", 
-            direction: "test",
-            per_page: 100,
-            page: 5
-        };
-
-        const expected = {
-            owner: "test",
-            repo: "test",
-            since: "test"
-        };
-
-         await octokit.listCommentContributors(input);
-
-         sinon.assert.calledWith(paginateStub, sinon.match.any, expected);
     });
 });
 
