@@ -2,6 +2,7 @@ require("dotenv").config();
 const sinon = require('sinon');
 const { Octokit } = require("@octokit/rest");
 const contributorsMixin = require("../contributors-mixin");
+const { _sortByContributions } = require("../contributors-mixin");
 
 Object.assign(Octokit.prototype, contributorsMixin);
 const octokit = new Octokit({ auth: process.env.token });
@@ -886,5 +887,79 @@ describe("listContributorsForOrg()", () => {
             .toBe(true);
         expect(paginateStub.getCall(4).calledWithExactly(sinon.match.any, { owner: "test", repo: "repo4", anon: "test"}))
             .toBe(true);
+    });
+});
+
+describe("listCommitContributorsForOrg()", () => {
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    test("should return empty array for empty org", async () => {
+        sinon.stub(octokit, "paginate").resolves([]);
+
+        const input = { org: "test", type: "test" };
+
+        const output = [];
+
+        expect(await octokit.listCommitContributorsForOrg(input)).toEqual(output);
+    });
+
+    test("should work with only one repo", async () => {
+        sinon.stub(octokit, "paginate").resolves([
+            { owner: { login: "test" }, name: "repo1" }
+        ]);
+        sinon.stub(octokit, "listCommitContributors").resolves([
+            {id: 1, contributions: 15},
+            {id: 2, contributions: 10},
+            {id: 3, contributions: 5}
+        ]);
+
+        const input = { org: "test", type: "test" };
+
+        const output = [
+            {id: 1, contributions: 15},
+            {id: 2, contributions: 10},
+            {id: 3, contributions: 5}
+        ];
+
+        expect(await octokit.listCommitContributorsForOrg(input)).toEqual(output);
+    });
+
+    test("should aggregate commit contributions", async () => {
+        sinon.stub(octokit, "paginate").resolves([
+            { owner: { login: "test" }, name: "repo1" },
+            { owner: { login: "test" }, name: "repo2" },
+            { owner: { login: "test" }, name: "repo3" },
+            { owner: { login: "test" }, name: "repo4" }
+        ]);
+        const commitContributorsStub = sinon.stub(octokit, "listCommitContributors")
+        commitContributorsStub.onCall(0).resolves([
+            { id: 1, contributions: 5 },
+            { id: 2, contributions: 3 },
+            { id: 3, contributions: 1 }
+        ]);
+        commitContributorsStub.onCall(1).resolves([
+            { id: 1, contributions: 7 },
+            { id: 4, contributions: 5 },
+            { id: 3, contributions: 2 }
+        ]);
+        commitContributorsStub.onCall(2).resolves([]);
+        commitContributorsStub.onCall(3).resolves([
+            { id: 5, contributions: 4 },
+            { id: 6, contributions: 1 }
+        ]);
+        const input = { org: "test", type: "test" };
+
+        const output = [
+            { id: 1, contributions: 12 },
+            { id: 4, contributions: 5 },
+            { id: 5, contributions: 4 },
+            { id: 2, contributions: 3 },
+            { id: 3, contributions: 3 },
+            { id: 6, contributions: 1 },
+        ];
+
+        expect(await octokit.listCommitContributorsForOrg(input)).toEqual(output);
     });
 });

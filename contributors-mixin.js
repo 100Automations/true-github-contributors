@@ -5,6 +5,23 @@ let contributorsMixin = {
      * @param  {String} parameters      [Parameters to be used in GitHub API request]
      * @return {Array}                  [Array of GitHub users with data about how many commits they made to an organization]
      */
+    async listCommitContributorsForOrg(parameters) {
+        let desiredParams = this._createParamsFromObject(["org", "type"], parameters);
+        let repos = await this.paginate(this.repos.listForOrg, desiredParams);
+
+        let contributors = [];
+        for(let repo of repos) {
+            let repoContributors = await this.listCommitContributors({owner: repo.owner.login, repo: repo.name, ...parameters});
+            contributors = contributors.concat(repoContributors);
+        }
+        return this._aggregateContributors(contributors);
+    },
+
+    /**
+     * Method to fetch commit contributors across an organization
+     * @param  {String} parameters      [Parameters to be used in GitHub API request]
+     * @return {Array}                  [Array of GitHub users with data about how many commits they made to an organization]
+     */
     async listContributorsForOrg(parameters) {
         let desiredParams = this._createParamsFromObject(["org", "type"], parameters);
         let repos = await this.paginate(this.repos.listForOrg, desiredParams);
