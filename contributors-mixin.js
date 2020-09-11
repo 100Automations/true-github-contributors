@@ -45,7 +45,7 @@ let contributorsMixin = {
 
         let contributors = [];
         for(let repo of repos) {
-            let repoContributors = await this.paginate(this.repos.listContributors, { owner: repo.owner.login, repo: repo.name, anon: parameters.anon });
+            let repoContributors = await this.paginate(this.repos.listContributors, { owner: repo.owner.login, repo: repo.name, ...parameters });
             contributors = contributors.concat(repoContributors);
         }
         return this._aggregateContributors(contributors);
@@ -62,7 +62,7 @@ let contributorsMixin = {
 
         let contributors = [];
         for(let repo of repos) {
-            let commentParameters = { owner: repo.owner.login, repo: repo.name, since: parameters.since };
+            let commentParameters = { owner: repo.owner.login, repo: repo.name, ...parameters };
             let repoContributors = await this.listCommentContributors(commentParameters);
             contributors = contributors.concat(repoContributors);
         }
