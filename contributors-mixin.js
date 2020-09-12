@@ -82,7 +82,7 @@ let contributorsMixin = {
             await this.paginate(this.repos.listContributors, desiredParams);
         let commentContributors = await this.listCommentContributors(desiredParams);
 
-        return this._aggregateContributors([].concat(contributors, commentContributors));
+        return this._aggregateContributors(contributors.concat(commentContributors));
     },
 
     /**

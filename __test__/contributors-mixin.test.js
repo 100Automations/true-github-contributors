@@ -357,7 +357,7 @@ describe("listCommentContributors()", () => {
         sinon.restore();
     });
 
-    test("should call paginate withcorrect parameters", async () => {
+    test("should call paginate with correct parameters", async () => {
         const paginateStub = sinon.stub(octokit, "paginate");
         paginateStub.resolves([]);
         const inputParams = {
@@ -466,55 +466,10 @@ describe("listCommitContributors()", () => {
         sinon.restore();
     });
 
-    test("should return a single contributor if there is only one commit", async () => {
-        sinon.stub(octokit, "paginate").resolves([
-            { node_id: 1, author: { id: 1 } }
-        ]);
-        const input = { owner: "test", repo: "test"};
-
-        const output = [
-            { id: 1, contributions: 1 }
-        ];
-
-        expect(await octokit.listCommitContributors(input)).toEqual(output);
-    });
-
-    test("should aggregate a list of commit objects", async () => {
-        sinon.stub(octokit, "paginate").resolves([
-            { node_id: 1, author: { id: 1 } },
-            { node_id: 2, author: { id: 1 } },
-            { node_id: 3, author: { id: 2 } },
-            { node_id: 4, author: { id: 3 } },
-            { node_id: 5, author: { id: 2 } },
-            { node_id: 2, author: { id: 1 } },
-            { node_id: 6, author: { id: 3 } },
-            { node_id: 7, author: { id: 4 } }
-        ]);
-        const input = { owner: "test", repo: "test"};
-
-        const output = [
-            { id: 1, contributions: 3 },
-            { id: 2, contributions: 2 },
-            { id: 3, contributions: 2 },
-            { id: 4, contributions: 1 }
-        ];
-
-        expect(await octokit.listCommitContributors(input)).toEqual(output);
-    });
-
-    test("should call paginate without unwanted params", async () => {
+    test("should call paginate with correct parameters", async () => {
         const paginateStub = sinon.stub(octokit, "paginate");
-        paginateStub.resolves([
-            { node_id: 1, author: { id: 1 } },
-            { node_id: 2, author: { id: 1 } },
-            { node_id: 3, author: { id: 2 } },
-            { node_id: 4, author: { id: 3 } },
-            { node_id: 5, author: { id: 2 } },
-            { node_id: 2, author: { id: 1 } },
-            { node_id: 6, author: { id: 3 } },
-            { node_id: 7, author: { id: 4 } }
-        ]);
-        const input = {
+        paginateStub.resolves([]);
+        const inputParams = {
             owner: "test", 
             repo: "test", 
             sha: "test",
@@ -523,10 +478,10 @@ describe("listCommitContributors()", () => {
             since: "test",
             until: "test",
             per_page: 100,
-            page: 5
+            page: 1
         };
 
-        const expected = {
+        const expectedParams = {
             owner: "test", 
             repo: "test", 
             sha: "test",
@@ -535,9 +490,83 @@ describe("listCommitContributors()", () => {
             until: "test"
         };
 
-         await octokit.listCommitContributors(input);
+        await octokit.listCommitContributors(inputParams);
 
-         sinon.assert.calledWith(paginateStub, sinon.match.any, expected);
+        sinon.assert.calledWith(paginateStub, octokit.repos.listCommits, expectedParams);
+    });
+
+    test("should leave input parameters unchanged", async () => {
+        sinon.stub(octokit, "paginate").resolves([]);
+        const inputParams = {
+            owner: "test", 
+            repo: "test", 
+            sha: "test",
+            path: "test",
+            author: "test",
+            since: "test",
+            until: "test",
+            per_page: 100,
+            page: 1
+        };
+
+        const inputParamsCopy = {
+            owner: "test", 
+            repo: "test", 
+            sha: "test",
+            path: "test",
+            author: "test",
+            since: "test",
+            until: "test",
+            per_page: 100,
+            page: 1
+        };
+
+        await octokit.listCommentContributors(inputParams);
+
+        expect(inputParams).toEqual(inputParamsCopy);
+    });
+
+    test("should return array of length one when there is only one comment contributor", async () => {
+        sinon.stub(octokit, "paginate").resolves([
+            { id: 200, author: { id: 1 } }
+        ]);
+
+        const input = { owner: "test", repo: "test" };
+
+        const output = [
+            { id: 1, contributions: 1 }
+        ];
+
+        expect(await octokit.listCommitContributors(input)).toEqual(output);
+    });
+
+    test("should aggregate, sort, and return a list of comment contributors", async () => {
+        sinon.stub(octokit, "paginate").resolves([
+            { id: 201, author: { id: 1 } },
+            { id: 202, author: { id: 2 } },
+            { id: 203, author: { id: 4 } },
+            { id: 204, author: { id: 5 } },
+            { id: 205, author: { id: 2 } },
+            { id: 206, author: { id: 5 } },
+            { id: 207, author: { id: 3 } },
+            { id: 208, author: { id: 1 } },
+            { id: 209, author: { id: 3 } },
+            { id: 210, author: { id: 1 } },
+            { id: 211, author: { id: 5 } },
+            { id: 212, author: { id: 5 } },
+        ]);
+
+        const input = { owner: "test", repo: "test" };
+
+        const output = [
+            {id: 5, contributions: 4 },
+            {id: 1, contributions: 3 },
+            {id: 2, contributions: 2 },
+            {id: 3, contributions: 2 },
+            {id: 4, contributions: 1 },
+        ];
+
+        expect(await octokit.listCommitContributors(input)).toEqual(output);
     });
 });
 
@@ -546,112 +575,57 @@ describe("listCommitCommentContributors()", () => {
         sinon.restore();
     });
 
-    test("should call listCommitContributors() and not paginate when since is a parameter", async () => {
-        const listCommitsStub = sinon.stub(octokit, "listCommitContributors").resolves([
-            { id: 1, contributions: 1 },
-        ]);
+    test("should call listCommitContributors if since is provided", async () => {
+        const listCommitsStub = sinon.stub(octokit, "listCommitContributors");
+        const listCommentsStub = sinon.stub(octokit, "listCommentContributors");
         const paginateStub = sinon.stub(octokit, "paginate");
-        sinon.stub(octokit, "listCommentContributors").resolves([]);
+        listCommitsStub.resolves([]);
+        listCommentsStub.resolves([]);
 
-        const input = { owner: "test", repo: "test", since: "test" };
+        const input = {
+            owner: "test", 
+            repo: "test", 
+            since: "test"
+        };
 
         await octokit.listCommitCommentContributors(input);
 
+        sinon.assert.calledOnce(listCommentsStub);
         sinon.assert.calledOnce(listCommitsStub);
         sinon.assert.notCalled(paginateStub);
     });
 
-    test("should call paginate and not listCommitContributors() when since is not a parameter", async () => {
-        const paginateStub = sinon.stub(octokit, "paginate").resolves([
-            { id: 1, contributions: 1 },
-        ]);
-        const listCommitsStub = sinon.stub(octokit, "listCommitContributors")
-        sinon.stub(octokit, "listCommentContributors").resolves([]);
+    test("should call paginate if since is not provided", async () => {
+        const listCommitsStub = sinon.stub(octokit, "listCommitContributors");
+        const listCommentsStub = sinon.stub(octokit, "listCommentContributors");
+        const paginateStub = sinon.stub(octokit, "paginate");
+        paginateStub.resolves([]);
+        listCommentsStub.resolves([]);
 
-        const input = { owner: "test", repo: "test" };
+        const input = {
+            owner: "test", 
+            repo: "test"
+        };
 
         await octokit.listCommitCommentContributors(input);
 
-        sinon.assert.notCalled(listCommitsStub);
+        sinon.assert.calledOnce(listCommentsStub);
         sinon.assert.calledOnce(paginateStub);
+        sinon.assert.notCalled(listCommitsStub);
     });
 
-    test("should be equal with commit contributions when there are no comments", async () => {
-        sinon.stub(octokit, "paginate").resolves([
-            { id: 3, contributions: 24 },
-            { id: 5, contributions: 20 },
-            { id: 1, contributions: 15 },
-            { id: 4, contributions: 12 },
-            { id: 2, contributions: 7 },
-            { id: 7, contributions: 7 }
-        ]);
-        sinon.stub(octokit, "listCommentContributors").resolves([]);
-
-        const input = { owner: "test", repo: "test" };
-
-        const output = [
-            { id: 3, contributions: 24 },
-            { id: 5, contributions: 20 },
-            { id: 1, contributions: 15 },
-            { id: 4, contributions: 12 },
-            { id: 2, contributions: 7 },
-            { id: 7, contributions: 7 }
-        ];
-
-        expect(await octokit.listCommitCommentContributors(input)).toEqual(output);
-    });
-
-    test("should aggregate commit and comment contributions", async () => {
-        sinon.stub(octokit, "paginate").resolves([
-            { id: 3, contributions: 24 },
-            { id: 5, contributions: 20 },
-            { id: 1, contributions: 15 },
-            { id: 4, contributions: 12 },
-            { id: 2, contributions: 7 }
-        ]);
-
-        sinon.stub(octokit, "listCommentContributors").resolves([
-            { id: 7, contributions: 9 },
-            { id: 1, contributions: 3 },
-            { id: 2, contributions: 2 },
-            { id: 3, contributions: 2 },
-            { id: 4, contributions: 1 },
-            { id: 6, contributions: 1 }
-        ]);
-
-        const input = { owner: "test", repo: "test" };
-
-        const output = [
-            { id: 3, contributions: 26 },
-            { id: 5, contributions: 20 },
-            { id: 1, contributions: 18 },
-            { id: 4, contributions: 13 },
-            { id: 2, contributions: 9 },
-            { id: 7, contributions: 9 },
-            { id: 6, contributions: 1 },
-        ];
-
-        expect(await octokit.listCommitCommentContributors(input)).toEqual(output);
-    });
-
-    test("should throw away unwanted params", async () => {
+    test("should call listCommentContributors and listCommitContributors with correct params", async () => {
         const listCommitsStub = sinon.stub(octokit, "listCommitContributors");
         const listCommentsStub = sinon.stub(octokit, "listCommentContributors");
-        listCommitsStub.resolves([
-            { id: 3, contributions: 24 },
-            { id: 5, contributions: 20 },
-            { id: 1, contributions: 15 },
-            { id: 4, contributions: 12 },
-            { id: 2, contributions: 7 }
-        ]);
+        listCommitsStub.resolves([]);
         listCommentsStub.resolves([]);
         const input = {
             owner: "test", 
             repo: "test", 
+            since: "test",
             sha: "test",
             path: "test",
             author: "test",
-            since: "test",
             until: "test",
             per_page: 100,
             page: 5
@@ -663,10 +637,117 @@ describe("listCommitCommentContributors()", () => {
             since: "test"
         };
 
+        await octokit.listCommitCommentContributors(input);
+
+        sinon.assert.calledWith(listCommitsStub, expected);
+        sinon.assert.calledWith(listCommentsStub, expected);
+    });
+    
+    test("should call listCommentContributors and paginate with correct params", async () => {
+        const paginateStub = sinon.stub(octokit, "paginate");
+        const listCommentsStub = sinon.stub(octokit, "listCommentContributors");
+        paginateStub.resolves([]);
+        listCommentsStub.resolves([]);
+        const input = {
+            owner: "test", 
+            repo: "test",
+            sha: "test",
+            path: "test",
+            author: "test",
+            until: "test",
+            per_page: 100,
+            page: 5
+        };
+
+        const expected = {
+            owner: "test", 
+            repo: "test"
+        };
+
          await octokit.listCommitCommentContributors(input);
 
-         sinon.assert.calledWith(listCommitsStub, expected);
+         sinon.assert.calledWith(paginateStub, octokit.repos.listContributors, expected);
          sinon.assert.calledWith(listCommentsStub, expected);
+    });
+
+    test("should leave input parameters unchanged", async () => {
+        sinon.stub(octokit, "listCommitContributors").resolves([]);
+        sinon.stub(octokit, "listCommentContributors").resolves([]);
+        const inputParams = {
+            owner: "test", 
+            repo: "test", 
+            sha: "test",
+            path: "test",
+            author: "test",
+            since: "test",
+            until: "test",
+            per_page: 100,
+            page: 1
+        };
+
+        const inputParamsCopy = {
+            owner: "test", 
+            repo: "test", 
+            sha: "test",
+            path: "test",
+            author: "test",
+            since: "test",
+            until: "test",
+            per_page: 100,
+            page: 1
+        };
+
+        await octokit.listCommitCommentContributors(inputParams);
+
+        expect(inputParams).toEqual(inputParamsCopy);
+    });
+
+    test("should be equal with commit contributions when there are no comments", async () => {
+        sinon.stub(octokit, "paginate").resolves([
+            { id: 201, contributions: 1 }
+        ]);
+        sinon.stub(octokit, "listCommentContributors").resolves([]);
+
+        const input = { owner: "test", repo: "test" };
+
+        const output = [
+            { id: 201, contributions: 1 }
+        ];
+
+        expect(await octokit.listCommitCommentContributors(input)).toEqual(output);
+    });
+
+    test("should aggregate and sort commit and comment contributions", async () => {
+        sinon.stub(octokit, "paginate").resolves([
+            { id: 203, contributions: 24 },
+            { id: 205, contributions: 20 },
+            { id: 201, contributions: 15 },
+            { id: 204, contributions: 12 },
+            { id: 202, contributions: 7 }
+        ]);
+
+        sinon.stub(octokit, "listCommentContributors").resolves([
+            { id: 207, contributions: 9 },
+            { id: 201, contributions: 3 },
+            { id: 202, contributions: 2 },
+            { id: 203, contributions: 2 },
+            { id: 204, contributions: 1 },
+            { id: 206, contributions: 1 }
+        ]);
+
+        const input = { owner: "test", repo: "test" };
+
+        const output = [
+            { id: 203, contributions: 26 },
+            { id: 205, contributions: 20 },
+            { id: 201, contributions: 18 },
+            { id: 204, contributions: 13 },
+            { id: 202, contributions: 9 },
+            { id: 207, contributions: 9 },
+            { id: 206, contributions: 1 },
+        ];
+
+        expect(await octokit.listCommitCommentContributors(input)).toEqual(output);
     });
 });
 
