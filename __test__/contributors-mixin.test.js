@@ -1069,69 +1069,156 @@ describe("listContributorsForOrg()", () => {
         sinon.restore();
     });
 
-    test("should return empty array for empty org", async () => {
+    test("should call listForOrg paginate with correct parameters", async () => {
+        const paginateStub = sinon.stub(octokit, "paginate");
+        paginateStub.resolves([]);
+        const inputParams = {
+            org: "test", 
+            type: "test", 
+            sort: "test",
+            direciton: "test",
+            per_page: 100,
+            page: 1
+        };
+
+        const expectedParams = {
+            org: "test", 
+            type: "test"
+        };
+
+        await octokit.listContributorsForOrg(inputParams);
+
+        sinon.assert.calledWith(paginateStub, octokit.repos.listForOrg, expectedParams);
+    });
+
+    test("should call listContributors paginate with correct parameters", async () => {
+        const paginateStub = sinon.stub(octokit, "paginate");
+        paginateStub.onCall(0).resolves([
+            { owner: { login: "test" }, name: "repo1" }
+        ]);
+        paginateStub.onCall(1).resolves([]);
+        const inputParams = { org: "test",  type: "test", anon: "test" };
+
+        const expectedParams = { owner: "test", repo: "repo1", org: "test",  type: "test", anon: "test" };
+
+        await octokit.listContributorsForOrg(inputParams);
+
+        sinon.assert.calledWithExactly(paginateStub.getCall(1), octokit.repos.listContributors, expectedParams);
+    });
+
+    test("should call listContributors paginate correct amount of times", async () => {
+        const paginateStub = sinon.stub(octokit, "paginate")
+        paginateStub.onCall(0).resolves([
+            { owner: { login: "test" }, name: "repo1" },
+            { owner: { login: "test" }, name: "repo2" },
+            { owner: { login: "test" }, name: "repo3" },
+            { owner: { login: "test" }, name: "repo4" },
+        ]);
+        paginateStub.onCall(1).resolves([]);
+        paginateStub.onCall(2).resolves([]);
+        paginateStub.onCall(3).resolves([]);
+        paginateStub.onCall(4).resolves([]);
+        const inputParams = { org: "test",  type: "test" };
+
+        await octokit.listContributorsForOrg(inputParams);
+
+       sinon.assert.callCount(paginateStub, 5);
+    });
+
+    test("should leave input parameters unchanged", async () => {
+        const paginateStub = sinon.stub(octokit, "paginate")
+        paginateStub.onCall(0).resolves([
+            { owner: { login: "test" }, name: "repo1" },
+            { owner: { login: "test" }, name: "repo2" },
+            { owner: { login: "test" }, name: "repo3" },
+            { owner: { login: "test" }, name: "repo4" },
+        ]);
+        paginateStub.onCall(1).resolves([ {id: 201, contributions: 1 } ]);
+        paginateStub.onCall(2).resolves([ {id: 202, contributions: 1 } ]);
+        paginateStub.onCall(3).resolves([ {id: 203, contributions: 1 } ]);
+        paginateStub.onCall(4).resolves([ {id: 204, contributions: 1 } ]);
+        const inputParams = {
+            org: "test", 
+            type: "test", 
+            sort: "test",
+            direciton: "test",
+            per_page: 100,
+            page: 1
+        };
+
+        const inputParamsCopy = {
+            org: "test", 
+            type: "test", 
+            sort: "test",
+            direciton: "test",
+            per_page: 100,
+            page: 1
+        };
+
+        await octokit.listContributorsForOrg(inputParams);
+
+        expect(inputParams).toEqual(inputParamsCopy);
+    });
+
+    test("should return empty array when there are no repos", async () => {
         sinon.stub(octokit, "paginate").resolves([]);
-        const input = { org: "test", type: "test", anon: "test"};
+        const input = { org: "test", type: "test" };
 
         const output = [];
 
         expect(await octokit.listContributorsForOrg(input)).toEqual(output);
     });
 
-    test("should work with only one repo", async () => {
+    test("should return 1st contributor set when there is only 1 repo", async () => {
         const paginateStub = sinon.stub(octokit, "paginate")
         paginateStub.onCall(0).resolves([
             { owner: { login: "test" }, name: "repo1" }
         ]);
         paginateStub.onCall(1).resolves([
-            { id: 1, contributions: 5 },
-            { id: 2, contributions: 3 },
-            { id: 3, contributions: 1 }
+            { id: 201, contributions: 1 }
         ]);
 
-        const input = { org: "test", type: "test", anon: "test" };
+        const input = { org: "test", type: "test" };
 
         const output = [
-            { id: 1, contributions: 5 },
-            { id: 2, contributions: 3 },
-            { id: 3, contributions: 1 }
+            { id: 201, contributions: 1 }
         ];
 
         expect(await octokit.listContributorsForOrg(input)).toEqual(output);
     });
 
-    test("should aggregate contributors from each repo", async () => {
+    test("should aggregate, sort, and return a list of comment contributors", async () => {
         const paginateStub = sinon.stub(octokit, "paginate")
         paginateStub.onCall(0).resolves([
             { owner: { login: "test" }, name: "repo1" },
             { owner: { login: "test" }, name: "repo2" },
             { owner: { login: "test" }, name: "repo3" },
-            { owner: { login: "test" }, name: "repo4" }
+            { owner: { login: "test" }, name: "repo4" },
         ]);
         paginateStub.onCall(1).resolves([
-            { id: 1, contributions: 5 },
-            { id: 2, contributions: 3 },
-            { id: 3, contributions: 1 }
+            { id: 201, contributions: 5 },
+            { id: 202, contributions: 3 },
+            { id: 203, contributions: 1 }
         ]);
         paginateStub.onCall(2).resolves([
-            { id: 1, contributions: 7 },
-            { id: 4, contributions: 5 },
-            { id: 3, contributions: 2 }
+            { id: 201, contributions: 7 },
+            { id: 204, contributions: 5 },
+            { id: 203, contributions: 2 }
         ]);
         paginateStub.onCall(3).resolves([]);
         paginateStub.onCall(4).resolves([
-            { id: 5, contributions: 4 },
-            { id: 6, contributions: 1 }
+            { id: 205, contributions: 4 },
+            { id: 206, contributions: 1 }
         ]);
-        const input = { org: "test", type: "test", anon: "test" };
+        const input = { org: "test", type: "test" };
 
         const output = [
-            { id: 1, contributions: 12 },
-            { id: 4, contributions: 5 },
-            { id: 5, contributions: 4 },
-            { id: 2, contributions: 3 },
-            { id: 3, contributions: 3 },
-            { id: 6, contributions: 1 },
+            { id: 201, contributions: 12 },
+            { id: 204, contributions: 5 },
+            { id: 205, contributions: 4 },
+            { id: 202, contributions: 3 },
+            { id: 203, contributions: 3 },
+            { id: 206, contributions: 1 },
         ];
 
         expect(await octokit.listContributorsForOrg(input)).toEqual(output);
