@@ -62,8 +62,7 @@ let contributorsMixin = {
 
         let contributors = [];
         for(let repo of repos) {
-            let commentParameters = { owner: repo.owner.login, repo: repo.name, ...parameters };
-            let repoContributors = await this.listCommentContributors(commentParameters);
+            let repoContributors = await this.listCommentContributors({ owner: repo.owner.login, repo: repo.name, ...parameters });
             contributors = contributors.concat(repoContributors);
         }
         return this._aggregateContributors(contributors);
