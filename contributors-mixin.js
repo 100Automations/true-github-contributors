@@ -1,4 +1,4 @@
-let contributorsMixin = {
+const trueContributors = {
 
     /**
      * Method to fetch contributors list based on number of issue comments and commits across an organization
@@ -203,4 +203,4 @@ let contributorsMixin = {
 
 }
 
-module.exports = contributorsMixin;
+module.exports = trueContributors;

@@ -1,10 +1,9 @@
-require("dotenv").config();
 const sinon = require('sinon');
 const { Octokit } = require("@octokit/rest");
-const contributorsMixin = require("../contributors-mixin");
+const trueContributors = require("../contributors-mixin");
 
-Object.assign(Octokit.prototype, contributorsMixin);
-const octokit = new Octokit({ auth: process.env.token });
+Object.assign(Octokit.prototype, trueContributors);
+const octokit = new Octokit();
 
 describe("_sortByContributions()", () => {
     test("should throw error if argument has no contribution property", () => {
