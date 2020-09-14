@@ -16,12 +16,9 @@
     "url": "https://github.com/KianBadie/github-contributor-helper/issues"
   },
   "homepage": "https://github.com/KianBadie/github-contributor-helper#readme",
-  "dependencies": {
-    "@octokit/rest": "^18.0.3",
-    "axios": "^0.19.2",
-    "lodash": "^4.17.19"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "@octokit/rest": "^18.0.3",
     "dotenv": "^8.2.0",
     "jest": "^26.4.2",
     "sinon": "^9.0.3"
