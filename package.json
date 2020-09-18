@@ -1,7 +1,7 @@
 {
-  "name": "github-contributors-helper",
+  "name": "true-contributors",
   "version": "1.0.0",
-  "description": "Module to assists with GitHub contributor data using the GitHub API.",
+  "description": "Module to assists with GitHub contributor data using octokit/rest.js",
   "main": "index.js",
   "scripts": {
     "test": "jest"
@@ -13,9 +13,9 @@
   "author": "Kian Badie",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/KianBadie/github-contributor-helper/issues"
+    "url": "https://github.com/100Automations/true-github-contributors/issues"
   },
-  "homepage": "https://github.com/KianBadie/github-contributor-helper#readme",
+  "homepage": "https://github.com/100Automations/true-github-contributors#readme",
   "dependencies": {},
   "devDependencies": {
     "@octokit/rest": "^18.0.3",
