@@ -8,7 +8,7 @@ const octokit = new Octokit({ auth: process.env.token });
 
 (async ()=> {
     const parameters = {
-        org: "hackforla"
+        org: "Public-Tree-Map"
     };
 
     // trueContributors endpoint that accounts for issue comments
