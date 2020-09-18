@@ -11,6 +11,7 @@ const octokit = new Octokit({ auth: process.env.token });
         owner: "hackforla",
         repo: "website"
     };
+    
     // Octokit's contributors endpoint that accounts for commits
     let octokitContributors = await octokit.paginate(octokit.repos.listContributors, parameters);
     console.log(`octokitContributors returned ${octokitContributors.length} contributors`);
