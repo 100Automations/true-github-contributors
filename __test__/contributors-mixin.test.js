@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const { Octokit } = require("@octokit/rest");
-const trueContributors = require("../contributors-mixin");
+const trueContributors = require("../trueContributors-mixin");
 
 Object.assign(Octokit.prototype, trueContributors);
 const octokit = new Octokit();

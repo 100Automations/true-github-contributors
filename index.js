@@ -1,1 +1,1 @@
-module.exports = require('./contributors-mixin');
+module.exports = require('./trueContributors-mixin');
