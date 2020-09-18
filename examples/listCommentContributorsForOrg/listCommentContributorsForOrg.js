@@ -17,7 +17,7 @@ const octokit = new Octokit({ auth: process.env.token });
     fs.writeFileSync(`${__dirname}/listCommentContributorsForOrg.json`, JSON.stringify(trueContributors, null, 2));
 
     // Fetching comment contributors since a given date
-    let since = "2020-09-11T11:01:06.000Z";
+    let since = "2019-09-11T11:01:06.000Z";
     let trueContributorsSince = await octokit.listCommentContributorsForOrg({ ...parameters, since });
     console.log(`listCommentContributorsForOrg since ${since} returned ${trueContributorsSince.length} contributors`);
     fs.writeFileSync(`${__dirname}/listCommentContributorsForOrgSince.json`, JSON.stringify(trueContributorsSince, null, 2));
