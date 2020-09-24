@@ -76,9 +76,18 @@ const trueContributors = {
     async listCommitCommentContributors(parameters) {
         let desiredParams = this._createParamsFromObject(["owner", "repo", "since"], parameters);
         // If since is a parameter, use listCommitContributors method. If not, use octokit's faster listContributors endpoint
-        let contributors = (desiredParams.since) ? 
-            await this.listCommitContributors(desiredParams) : 
-            await this.paginate(this.repos.listContributors, desiredParams);
+        let contributors = [];
+        try {
+            contributors = (desiredParams.since) ? 
+                await this.listCommitContributors(desiredParams) : 
+                await this.paginate(this.repos.listContributors, desiredParams);
+        } catch(err) {
+            // Check to see if error through from Status Code 204 from repos.listContributors
+            if(desiredParams.since) throw err;
+            let res = await this.repos.listContributors(desiredParams);
+            if(res.status != 204 || res.headers.status != "204 No Content") throw err;
+        }
+
         let commentContributors = await this.listCommentContributors(desiredParams);
 
         return this._aggregateContributors(contributors.concat(commentContributors));

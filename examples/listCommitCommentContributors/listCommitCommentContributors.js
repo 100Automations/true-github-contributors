@@ -11,7 +11,7 @@ const octokit = new Octokit({ auth: process.env.token });
         owner: "hackforla",
         repo: "website"
     };
-
+    
     // Octokit's contributors endpoint that accounts for commits
     let octokitContributors = await octokit.paginate(octokit.repos.listContributors, parameters);
     console.log(`octokitContributors returned ${octokitContributors.length} contributors`);
@@ -27,5 +27,10 @@ const octokit = new Octokit({ auth: process.env.token });
     let trueContributorsSince = await octokit.listCommitCommentContributors({ ...parameters, since });
     console.log(`listCommitCommentContributors since ${since} returned ${trueContributorsSince.length} contributors`);
     fs.writeFileSync(`${__dirname}/listCommitCommentContributorsSince.json`, JSON.stringify(trueContributorsSince, null, 2));
+    
+    // trueContributors endpoint that returns an empty list for empty repos
+    let trueContributorsEmpty = await octokit.listCommitCommentContributors({ owner: "civictechindex", repo: "database" });
+    console.log(`listCommitCommentContributors to empty repo returned ${trueContributorsEmpty.length} contributors`);
+    fs.writeFileSync(`${__dirname}/listCommitCommentContributorsEmpty.json`, JSON.stringify(trueContributorsEmpty, null, 2));
     
 })();

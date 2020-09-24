@@ -780,6 +780,80 @@ describe("listCommitCommentContributors()", () => {
         expect(await octokit.listCommitCommentContributors(input)).toEqual(output);
     });
 
+    test("should be equal with comment contributions when there are no contributors for listContributors", async () => {
+        const paginateError = new TypeError("Cannot use 'in' operator to search for 'total_count' in undefined");
+        const paginateStub = sinon.stub(octokit, "paginate");
+        paginateStub.throws(paginateError);
+        const listContributorsStub = sinon.stub(octokit.repos, "listContributors");
+        listContributorsStub.resolves({ status: 204, headers: { status: "204 No Content" } });
+        sinon.stub(octokit, "listCommentContributors").resolves([
+            { id: 201, contributions: 1 }
+        ]);
+
+        const input = { owner: "test", repo: "test" };
+
+        const output = [
+            { id: 201, contributions: 1 }
+        ];
+
+        expect(await octokit.listCommitCommentContributors(input)).toEqual(output);
+        sinon.assert.threw(paginateStub, paginateError);
+    });
+
+    test("should throw if listCommitContributors throws an error", async () => {
+        sinon.stub(octokit, "listCommitContributors").throws(new Error("Error from listCommitContributors."));
+        const input = { owner: "test", repo: "test", since: "test" };
+
+        expect.assertions(1);
+        try {
+            await octokit.listCommitCommentContributors(input);
+        } catch(error) {
+            expect(error.message).toEqual("Error from listCommitContributors.")
+        }
+    });
+
+    test("should throw if response from listContributors does not have status 204", async () => {
+        const paginateError = new TypeError("Cannot use 'in' operator to search for 'total_count' in undefined");
+        sinon.stub(octokit, "paginate").throws(paginateError);
+        sinon.stub(octokit.repos, "listContributors").resolves({ status: 200, headers: { status: "204 No Content" } });
+        const input = { owner: "test", repo: "test" };
+
+        expect.assertions(1);
+        try {
+            await octokit.listCommitCommentContributors(input);
+        } catch(error) {
+            expect(error).toEqual(paginateError);
+        }
+    });
+
+    test("should throw if response from listContributors does not have header with status `204 No Content`", async () => {
+        const paginateError = new TypeError("Cannot use 'in' operator to search for 'total_count' in undefined");
+        sinon.stub(octokit, "paginate").throws(paginateError);
+        sinon.stub(octokit.repos, "listContributors").resolves({ status: 204, headers: { status: "205 No Content" } });
+        const input = { owner: "test", repo: "test" };
+
+        expect.assertions(1);
+        try {
+            await octokit.listCommitCommentContributors(input);
+        } catch(error) {
+            expect(error).toEqual(paginateError);
+        }
+    });
+
+    test("should throw if listContributors throws", async () => {
+        sinon.stub(octokit, "paginate").throws(new TypeError("Cannot use 'in' operator to search for 'total_count' in undefined"));
+        const listContributorsError = new Error("Error thrown from listContributors");
+        sinon.stub(octokit.repos, "listContributors").throws(listContributorsError);
+        const input = { owner: "test", repo: "test" };
+
+        expect.assertions(1);
+        try {
+            await octokit.listCommitCommentContributors(input);
+        } catch(error) {
+            expect(error).toEqual(listContributorsError);
+        }
+    });
+
     test("should aggregate and sort commit and comment contributions", async () => {
         sinon.stub(octokit, "paginate").resolves([
             { id: 203, contributions: 24 },
