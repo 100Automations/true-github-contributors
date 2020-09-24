@@ -8,7 +8,7 @@ const octokit = new Octokit({ auth: process.env.token });
 
 (async ()=> {
     const parameters = {
-        org: "Public-Tree-Map"
+        org: "hackforla"
     };
 
     // trueContributors endpoint that accounts for commits and issue comments in an org
@@ -17,7 +17,7 @@ const octokit = new Octokit({ auth: process.env.token });
     fs.writeFileSync(`${__dirname}/listCommitCommentContributorsForOrg.json`, JSON.stringify(trueContributors, null, 2));
 
     // Fetching commit and comment contributors in an org since a given date
-    let since = "2019-09-11T11:01:06.000Z";
+    let since = "2020-09-11T11:01:06.000Z";
     let trueContributorsSince = await octokit.listCommitCommentContributorsForOrg({ ...parameters, since });
     console.log(`listCommitCommentContributorsForOrg since ${since} returned ${trueContributorsSince.length} contributors`);
     fs.writeFileSync(`${__dirname}/listCommitCommentContributorsSinceForOrg.json`, JSON.stringify(trueContributorsSince, null, 2));
