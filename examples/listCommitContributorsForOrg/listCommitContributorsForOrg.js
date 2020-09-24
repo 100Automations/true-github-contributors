@@ -22,4 +22,9 @@ const octokit = new Octokit({ auth: process.env.token });
     console.log(`listCommitContributorsForOrg since ${since} returned ${trueContributorsSince.length} contributors`);
     fs.writeFileSync(`${__dirname}/listCommitContributorsForOrgSince.json`, JSON.stringify(trueContributorsSince, null, 2));
 
+
+    // Fetching commit contributors in an org with empty repos
+    let trueContributorsWithEmpy = await octokit.listCommitContributorsForOrg({ org: "civictechindex" });
+    console.log(`listCommitContributorsForOrg with empty repos in org returned ${trueContributorsWithEmpy.length} contributors`);
+    fs.writeFileSync(`${__dirname}/listCommitContributorsForOrgWithEmpty.json`, JSON.stringify(trueContributorsWithEmpy, null, 2));
 })();
