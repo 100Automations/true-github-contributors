@@ -91,7 +91,15 @@ const trueContributors = {
      */
     async listCommitContributors(parameters) {
         let desiredParams = this._createParamsFromObject(["owner", "repo", "sha", "path", "since", "until"], parameters);
-        let commits = await this.paginate(this.repos.listCommits, desiredParams);
+        let commits = [];
+        try {
+            commits = await this.paginate(this.repos.listCommits, desiredParams);
+        } catch(err) {
+            // If the error message is not regarding an empty repo, then propagate error
+            if(err.status != 409 || err.message != "Git Repository is empty.") {
+                throw err;
+            }
+        }
         return this._aggregateContributions(commits, "author");
     },
 

@@ -28,12 +28,14 @@ const octokit = new Octokit({ auth: process.env.token });
     console.log(`listCommitContributors since ${since} returned ${trueContributorsSince.length} contributors`);
     fs.writeFileSync(`${__dirname}/listCommitContributorsSince.json`, JSON.stringify(trueContributorsSince, null, 2));
     
-
     // Fetching commit contributors to a specific file
     let path = "credits.html";
     let trueContributorsPath = await octokit.listCommitContributors({ ...parameters, path });
     console.log(`listCommitContirbutors to path ${path} returned ${trueContributorsPath.length} contributors`);
     fs.writeFileSync(`${__dirname}/listCommitContributorsPath.json`, JSON.stringify(trueContributorsPath, null, 2));
     
-
+    // Attempting to fetch commits from an empty repo
+    let trueContributorsEmpty = await octokit.listCommitContributors({ owner: "civictechindex", repo: "database" });
+    console.log(`listCommitContributors returned ${trueContributorsEmpty.length} contributors`);
+    fs.writeFileSync(`${__dirname}/listCommitContributorsEmpty.json`, JSON.stringify(trueContributorsEmpty, null, 2));
 })();

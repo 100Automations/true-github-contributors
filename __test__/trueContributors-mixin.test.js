@@ -525,6 +525,55 @@ describe("listCommitContributors()", () => {
         expect(inputParams).toEqual(inputParamsCopy);
     });
 
+    test("should return an empty array when there are no commits and handle empty repo error is given", async () => {
+        class EmptyRepoError extends Error {
+            constructor() {
+                super();
+                this.status = 409;
+                this.message = "Git Repository is empty.";
+            }
+        };
+        const emptyRepoError = new EmptyRepoError();
+        const paginateStub = sinon.stub(octokit, "paginate")
+        paginateStub.throws(emptyRepoError);
+        const input = { owner: "test", repo: "test" };
+
+        const output = [];
+
+        expect(await octokit.listCommitContributors(input)).toEqual(output);
+        sinon.assert.threw(paginateStub, emptyRepoError);
+    });
+
+    test("should throw on error without status 409", async () => {
+        sinon.stub(octokit, "paginate").throws(new Error("Git Repository is empty."));
+        const input = { owner: "test", repo: "test" };
+
+        expect.assertions(1);
+        try {
+            await octokit.listCommitContributors(input);
+        } catch(error) {
+            expect(error.message).toEqual("Git Repository is empty.")
+        }
+    });
+
+    test("should throw on error without messsage 'Git Repository is empty.'", async () => {
+        class statusError extends Error {
+            constructor() {
+                super();
+                this.status = 409;
+            }
+        };
+        sinon.stub(octokit, "paginate").throws(new statusError());
+        const input = { owner: "test", repo: "test" };
+
+        expect.assertions(1);
+        try {
+            await octokit.listCommitContributors(input);
+        } catch(error) {
+            expect(error.status).toEqual(409)
+        }
+    });
+
     test("should return array of length one when there is only one comment contributor", async () => {
         sinon.stub(octokit, "paginate").resolves([
             { id: 200, author: { id: 1 } }
