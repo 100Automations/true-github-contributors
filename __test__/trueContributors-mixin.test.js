@@ -765,6 +765,21 @@ describe("listCommitCommentContributors()", () => {
         expect(await octokit.listCommitCommentContributors(input)).toEqual(output);
     });
 
+    test("should be equal with comment contributions when there are no commits", async () => {
+        sinon.stub(octokit, "listCommitContributors").resolves([]);
+        sinon.stub(octokit, "listCommentContributors").resolves([
+            { id: 201, contributions: 1 }
+        ]);
+
+        const input = { owner: "test", repo: "test", since: "test" };
+
+        const output = [
+            { id: 201, contributions: 1 }
+        ];
+
+        expect(await octokit.listCommitCommentContributors(input)).toEqual(output);
+    });
+
     test("should aggregate and sort commit and comment contributions", async () => {
         sinon.stub(octokit, "paginate").resolves([
             { id: 203, contributions: 24 },
