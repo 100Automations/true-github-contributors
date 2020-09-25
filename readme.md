@@ -84,6 +84,10 @@ Each of the endpoints will return an arraay of contributor objects that mimic th
 Every user object will have additional endpoints that can give more data about each contributor, as well as a `contribution` property that represents the number of contributions a user has made to a repository or organization.
 
 ## API
+### Versions/Updates
+#### Version `1.0.1` Changes
+- Endpoints that fetch any sort of commit contributions supply an empty array if a repository is empty instead of throwing an error.
+
 ### Configuration
 As mentioned previously, this mixin is an extension of GitHub's [octokit/rest.js](https://octokit.github.io/rest.js/v18/) API Client. In order to use the features of this mixin, the octokit/rest.js package is required.
 ```javascript
