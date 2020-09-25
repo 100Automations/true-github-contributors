@@ -8,7 +8,7 @@ const octokit = new Octokit({ auth: process.env.token });
 
 (async ()=> {
     const parameters = {
-        org: "Public-Tree-Map"
+        org: "hackforla"
     };
 
     // trueContributors endpoint that aggregates octokit's listContributors endpoint across an org

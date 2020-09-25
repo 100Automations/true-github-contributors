@@ -1306,6 +1306,151 @@ describe("listContributorsForOrg()", () => {
         expect(await octokit.listContributorsForOrg(input)).toEqual(output);
     });
 
+    test("should handle when an org has empty repository", async () => {
+        const paginateError = new TypeError("Cannot use 'in' operator to search for 'total_count' in undefined");
+        const paginateStub = sinon.stub(octokit, "paginate")
+        paginateStub.onCall(0).resolves([
+            { owner: { login: "test" }, name: "repo1" },
+            { owner: { login: "test" }, name: "repo2" },
+            { owner: { login: "test" }, name: "repo3" },
+            { owner: { login: "test" }, name: "repo4" },
+        ]);
+        paginateStub.onCall(1).resolves([
+            { id: 201, contributions: 5 },
+            { id: 202, contributions: 3 },
+            { id: 203, contributions: 1 }
+        ]);
+        paginateStub.onCall(2).resolves([
+            { id: 201, contributions: 7 },
+            { id: 204, contributions: 5 },
+            { id: 203, contributions: 2 }
+        ]);
+        paginateStub.onCall(3).throws(paginateError);
+        paginateStub.onCall(4).resolves([
+            { id: 205, contributions: 4 },
+            { id: 206, contributions: 1 }
+        ]);
+        sinon.stub(octokit.repos, "listContributors").resolves({ status: 204, headers: { status: "204 No Content" } });;
+        const input = { org: "test", type: "test" };
+
+        const output = [
+            { id: 201, contributions: 12 },
+            { id: 204, contributions: 5 },
+            { id: 205, contributions: 4 },
+            { id: 202, contributions: 3 },
+            { id: 203, contributions: 3 },
+            { id: 206, contributions: 1 },
+        ];
+
+        expect(await octokit.listContributorsForOrg(input)).toEqual(output);
+        sinon.assert.threw(paginateStub.getCall(3), paginateError);
+    });
+
+    test("should throw if listContributors throws an error", async () => {
+        const paginateStub = sinon.stub(octokit, "paginate")
+        paginateStub.onCall(0).resolves([
+            { owner: { login: "test" }, name: "repo1" },
+            { owner: { login: "test" }, name: "repo2" },
+            { owner: { login: "test" }, name: "repo3" },
+            { owner: { login: "test" }, name: "repo4" },
+        ]);
+        paginateStub.onCall(1).resolves([
+            { id: 201, contributions: 5 },
+            { id: 202, contributions: 3 },
+            { id: 203, contributions: 1 }
+        ]);
+        paginateStub.onCall(2).resolves([
+            { id: 201, contributions: 7 },
+            { id: 204, contributions: 5 },
+            { id: 203, contributions: 2 }
+        ]);
+        paginateStub.onCall(3).throws(new TypeError("Cannot use 'in' operator to search for 'total_count' in undefined"));
+        paginateStub.onCall(4).resolves([
+            { id: 205, contributions: 4 },
+            { id: 206, contributions: 1 }
+        ]);
+        const listContributorsError = new Error("Error in listContributors.");
+        sinon.stub(octokit.repos, "listContributors").throws(listContributorsError);
+        const input = { org: "test", type: "test" };
+
+        expect.assertions(1);
+        try {
+            await octokit.listContributorsForOrg(input)
+        } catch(error) {
+            expect(error).toEqual(listContributorsError);
+        }
+    });
+
+    test("should throw if response from listContributors does not have status 204", async () => {
+        const paginateStub = sinon.stub(octokit, "paginate");
+        const paginateError = new TypeError("Cannot use 'in' operator to search for 'total_count' in undefined")
+        paginateStub.onCall(0).resolves([
+            { owner: { login: "test" }, name: "repo1" },
+            { owner: { login: "test" }, name: "repo2" },
+            { owner: { login: "test" }, name: "repo3" },
+            { owner: { login: "test" }, name: "repo4" },
+        ]);
+        paginateStub.onCall(1).resolves([
+            { id: 201, contributions: 5 },
+            { id: 202, contributions: 3 },
+            { id: 203, contributions: 1 }
+        ]);
+        paginateStub.onCall(2).resolves([
+            { id: 201, contributions: 7 },
+            { id: 204, contributions: 5 },
+            { id: 203, contributions: 2 }
+        ]);
+        paginateStub.onCall(3).throws(paginateError);
+        paginateStub.onCall(4).resolves([
+            { id: 205, contributions: 4 },
+            { id: 206, contributions: 1 }
+        ]);
+        sinon.stub(octokit.repos, "listContributors").resolves({ status: 205, headers: { status: "204 No Content" } });
+        const input = { owner: "test", repo: "test" };
+
+        expect.assertions(1);
+        try {
+            await octokit.listContributorsForOrg(input);
+        } catch(error) {
+            expect(error).toEqual(paginateError);
+        }
+    });
+
+    test("should throw if response from listContributors does not have header with status `204 No Content`", async () => {
+        const paginateStub = sinon.stub(octokit, "paginate");
+        const paginateError = new TypeError("Cannot use 'in' operator to search for 'total_count' in undefined")
+        paginateStub.onCall(0).resolves([
+            { owner: { login: "test" }, name: "repo1" },
+            { owner: { login: "test" }, name: "repo2" },
+            { owner: { login: "test" }, name: "repo3" },
+            { owner: { login: "test" }, name: "repo4" },
+        ]);
+        paginateStub.onCall(1).resolves([
+            { id: 201, contributions: 5 },
+            { id: 202, contributions: 3 },
+            { id: 203, contributions: 1 }
+        ]);
+        paginateStub.onCall(2).resolves([
+            { id: 201, contributions: 7 },
+            { id: 204, contributions: 5 },
+            { id: 203, contributions: 2 }
+        ]);
+        paginateStub.onCall(3).throws(paginateError);
+        paginateStub.onCall(4).resolves([
+            { id: 205, contributions: 4 },
+            { id: 206, contributions: 1 }
+        ]);
+        sinon.stub(octokit.repos, "listContributors").resolves({ status: 204, headers: { status: "205 No Content" } });
+        const input = { owner: "test", repo: "test" };
+
+        expect.assertions(1);
+        try {
+            await octokit.listContributorsForOrg(input);
+        } catch(error) {
+            expect(error).toEqual(paginateError);
+        }
+    });
+
     test("should return 1st contributor set when there is only 1 repo", async () => {
         const paginateStub = sinon.stub(octokit, "paginate")
         paginateStub.onCall(0).resolves([

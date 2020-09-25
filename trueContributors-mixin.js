@@ -45,7 +45,14 @@ const trueContributors = {
 
         let contributors = [];
         for(let repo of repos) {
-            let repoContributors = await this.paginate(this.repos.listContributors, { owner: repo.owner.login, repo: repo.name, ...parameters });
+            let repoContributors = []
+            try {
+                repoContributors = await this.paginate(this.repos.listContributors, { owner: repo.owner.login, repo: repo.name, ...parameters });
+            } catch(err) {
+                // If the error message is not regarding an empty repo, then propagate error
+                let res = await this.repos.listContributors({ owner: repo.owner.login, repo: repo.name, ...parameters });
+                if(res.status != 204 || res.headers.status != "204 No Content") throw err;
+            }
             contributors = contributors.concat(repoContributors);
         }
         return this._aggregateContributors(contributors);
