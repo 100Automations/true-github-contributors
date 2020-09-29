@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/KianBadie/github-contributor-helper.git"
+    "url": "https://github.com/100Automations/true-github-contributors.git"
   },
   "author": "Kian Badie",
   "license": "ISC",
