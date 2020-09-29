@@ -85,6 +85,8 @@ Every user object will have additional endpoints that can give more data about e
 
 ## API
 ### Versions/Updates
+#### Version `1.0.2` Changes
+- GitHub repository in package.json now points to the correct place.
 #### Version `1.0.1` Changes
 - Endpoints that fetch any sort of commit contributions supply an empty array if a repository is empty instead of throwing an error.
 
