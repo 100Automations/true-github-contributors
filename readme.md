@@ -36,7 +36,7 @@ Currently, the Hack for LA website uses GitHub Actions to run a [script](https:/
 
 In this repository, I have developed a mixin for octokit/rest.js that fetches the desired data sets and more. This will allow users of the mixin to still use octokit/rest.js as they normally do and extend it's functionality with a minimal footprint. 
 
-The mixin uses `octokit/rest` `[pagination]`(https://octokit.github.io/rest.js/v18#pagination) endpoint to fetch relevant commit/issue comment data. Because commit/issue comment data can be large, this results in long wait times for the `paginate` endpoint to return commit/issue comment data. This, in turn, results  in the endpoints of this mixin to have long wait times when the specified repository/organization has large amounts of commits/issue comments. Please keep this in mind if it is necessary for your project to be as fast as possible.
+The mixin uses `octokit/rest`'s [`pagination`](https://octokit.github.io/rest.js/v18#pagination) endpoint to fetch relevant commit/issue comment data. Because commit/issue comment data can be large, this results in long wait times for the `paginate` endpoint to return commit/issue comment data. This, in turn, results  in the endpoints of this mixin to have long wait times when the specified repository/organization has large amounts of commits/issue comments. Please keep this in mind if it is necessary for your project to be as fast as possible.
 
 ### Future Development
 The endpoints created with this mixin are currently being tested. I would also like this mixin to be available through [npm](https://www.npmjs.com/). This would make the process of using the mixin more convenient for those in node environments.
