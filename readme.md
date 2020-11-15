@@ -23,6 +23,9 @@ This repo/tool also makes use of the octokit/rest.js package and then extends it
 - Project Leadership: Able to see who is contributing to repositories and organizations.
 - Project contributors: Efforts made through issue comments will be reflected in contributor sets. 
 
+### Contributing
+If you are interested in contributing, please refer to the [contributing](https://github.com/100Automations/true-github-contributors/blob/mixin/CONTRIBUTING.md) document for more details. Thank you for being interested in improving the package!
+
 ## Technical Details
 
 ### Installation
