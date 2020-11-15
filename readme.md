@@ -95,8 +95,11 @@ Every user object will have additional endpoints that can give more data about e
 #### Version `1.0.1` Changes
 - Endpoints that fetch any sort of commit contributions supply an empty array if a repository is empty instead of throwing an error.
 
-### Configuration
+### Getting Started
+#### Configuration
 As mentioned previously, this mixin is an extension of GitHub's [octokit/rest.js](https://octokit.github.io/rest.js/v18/) API Client. In order to use the features of this mixin, the octokit/rest.js package is required.
+
+Once `octokit/rest` and `true-github-contributors` are installed, the methods of the `true-github-contributors` mixin must be copied into the `Octokit` prototype in order to be used (see code snippet below). For an intro on what mixins are in JavaScript and how they are implemented, see JavaScript.info's ["Mixins"](https://javascript.info/mixins) article.
 ```javascript
 require("dotenv").config();
 const { Octokit } = require("@octokit/rest");
@@ -105,9 +108,11 @@ const trueGitHubContributors = require("true-github-contributors");
 Object.assign(Octokit.prototype, trueGitHubContributors);
 const octokit = new Octokit({ auth: process.env.token });
 ```
-While using an API token to construct an `Octokit` instance is not required, I highly recommend it with the use of this mixin (like I did in the above code snippet). Endpoints that access data like commits and comments have the potentional of fetching a large amount of data. Using an API token will decrease the chances of you exceeding the GitHub API rate limits.
+Once the mixin is merged with the `Octokit` prototype, a new instance of the `Octokit` class must be instantiated (as seen in the last line of the code snippet above). This will allow one to start using the methods of the `Octokit` class (for usage of the `Octokit` class, please refer to `Octokit`'s [documenation](https://octokit.github.io/rest.js/v18)) as well as the methods of the `true-github-contributors` mixin. A short example of usage is show below in the [Usage](#usage) section. Examples of every API endpoint of the `true-github-contributors` mixin in different use cases are available in the [examples](https://github.com/100Automations/true-github-contributors/tree/mixin/examples) directory.
 
-### Usage
+While using an API token to construct an `Octokit` instance is not required, I highly recommend it with the use of this mixin (like I did in the above code snippet). Endpoints that access data like commits and comments have the potentional of fetching a large amount of data. Using an API token will decrease the chances of you exceeding the GitHub API rate limits. 
+
+#### Usage
 The endpoints of the mixin are accessed a bit differently than how endpoints are normally accessed with `octokit/rest`. API endpoints are called directly on the `octokit` object, as in:
 ```javascript
 octokit.listCommitContributors(parameters) // Mixin endpoint for fetching commit contributors
