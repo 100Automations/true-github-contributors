@@ -88,7 +88,11 @@ Every user object will have additional endpoints that can give more data about e
 
 ## API
 ### Versions/Updates
-#### Version `1.0.3 Changes`
+#### Version `1.0.4` Changes
+- Remove `coverage/` directory from repository and add it to the `.gitignore` file.
+- Add `SECURITY.md`, `SUPPORT.md`, and `CONTRIBUTING.md` to the `.npmignore` file so that they will not be included with package installation.
+- Add "Contributing" section to readme and modify the "Configuration" and "Usage" sections of the readme to be part of a new "Getting Started" section that has more details.
+#### Version `1.0.3` Changes
 - Add License to npm package and Code of Conduct to GitHub repository.
 #### Version `1.0.2` Changes
 - GitHub repository in package.json now points to the correct place.
