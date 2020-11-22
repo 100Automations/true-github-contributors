@@ -137,18 +137,18 @@ const trueContributors = {
      */
     _aggregateContributors(contributors) {
         // Use JSON to create a dictionary of users and their contributions
-        let contributorDictionary = {};
-        for(let contributor of contributors) {
-            if(!contributor.hasOwnProperty("contributions")) throw `Error: contributor ${JSON.stringify(contributor)} has no property contributions`;
-            if(!contributor.hasOwnProperty("id")) throw `Error: contributor ${JSON.stringify(contributor)} has no property id`;
-            // If user id for this comment exists in dictionary, add a contribution to that user
-            if(contributor.id in contributorDictionary) {
-                contributorDictionary[contributor.id].contributions += contributor.contributions;
+        let contributorDictionary = contributors.reduce( (contDict, cont) => {
+            if(!cont.hasOwnProperty("contributions")) throw `Error: contributor ${JSON.stringify(cont)} has no property contributions`;
+            if(!cont.hasOwnProperty("id")) throw `Error: contributor ${JSON.stringify(cont)} has no property id`;
+            // If user id for this contributor exists in dictionary, add a contribution to that user
+            if(cont.id in contDict) {
+                contDict[cont.id].contributions += cont.contributions;
             // If user id for this comment does not exist, add user to dictionary
             } else {
-                contributorDictionary[contributor.id] = contributor
+                contDict[cont.id] = cont
             }
-        }
+            return contDict;
+        }, {});
         // Convert JSON dictionary to a list of users
         return this._contributorDictToArr(contributorDictionary);
     },
@@ -162,22 +162,21 @@ const trueContributors = {
     _aggregateContributions(contributions, contributionIdentifier) {
         if(!contributionIdentifier) throw "Error: no contribution identifier was given to _aggregateContributions";
         // Use JSON to create a dictionary of users and their contributions
-        let contributorDictionary = {};
-        for(let contribution of contributions) {
-            if(!contribution.hasOwnProperty(contributionIdentifier)) throw `Error: contribution ${JSON.stringify(contribution)} has no property ${contributionIdentifier}`;
-            let contributor = contribution[contributionIdentifier];
+        let contributorDictionary = contributions.reduce( (contDict, cont) => {
+            if(!cont.hasOwnProperty(contributionIdentifier)) throw `Error: contribution ${JSON.stringify(cont)} has no property ${contributionIdentifier}`;
+            let contributor = cont[contributionIdentifier];
             // Contributions can have a null author, so we should ignore those.
-            if(!contributor) continue;
-            // If user id for this comment exists in dictionary, add a contribution to that user
-            if(contributor.id in contributorDictionary) {
-                contributorDictionary[contributor.id].contributions++;
-            // If user id for this comment does not exist, add user to dictionary with one contribution
+            if(!contributor) return contDict;
+            // If user id for this contribution exists in dictionary, add a contribution to that user
+            if(contributor.id in contDict) {
+                contDict[contributor.id].contributions++;
+            // If user id for this contribution does not exist, add user to dictionary with one contribution
             } else {
-                contributorDictionary[contributor.id] = contributor
-                contributorDictionary[contributor.id].contributions = 1;
+                contDict[contributor.id] = contributor
+                contDict[contributor.id].contributions = 1;
             }
-        }
-        // Convert JSON dictionary to a list of users
+            return contDict;
+        }, {});
         return this._contributorDictToArr(contributorDictionary);
     },
 
