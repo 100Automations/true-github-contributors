@@ -137,7 +137,7 @@ const trueContributors = {
      */
     _aggregateContributors(contributors) {
         // Use JSON to create a dictionary of users and their contributions
-        let contributorDictionary = contributors.reduce(this._reduceContributions, {});
+        let contributorDictionary = contributors.reduce(this._reduceContributors, {});
         // Convert JSON dictionary to a list of users
         return this._contributorDictToArr(contributorDictionary);
     },
@@ -157,7 +157,7 @@ const trueContributors = {
                 return contribution[contributionIdentifier];
             })
             .map((contribution) => ( {...contribution[contributionIdentifier], contributions: 1} ))
-            .reduce(this._reduceContributions, {});
+            .reduce(this._reduceContributors, {});
         return this._contributorDictToArr(contributorDictionary);
     },
 
@@ -167,7 +167,7 @@ const trueContributors = {
      * @param  {Object} contributor             [Current contributor in the array]
      * @return {Object}                         [Dictionary of contributors mapping users to user metadata containing contribution count]
      */
-    _reduceContributions(contributorDict, contributor) {
+    _reduceContributors(contributorDict, contributor) {
         if(!contributor.hasOwnProperty("contributions")) throw `Error: contributor ${JSON.stringify(cont)} has no property contributions`;
         if(!contributor.hasOwnProperty("id")) throw `Error: contributor ${JSON.stringify(cont)} has no property id`;
         // If user id for this contributor exists in dictionary, add a contribution to that user
