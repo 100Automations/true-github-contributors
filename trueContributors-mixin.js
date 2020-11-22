@@ -46,6 +46,13 @@ const trueContributors = {
         let contributors = [];
         for(let repo of repos) {
             let repoContributors = []
+            // The reason for the below try/catch statement is that using Octokit's paginate method on the
+            // repos.listContributors endpoint will throw an unintentional TypeError if the repo is empty. The workaround 
+            // if an error is thrown from the paginate method is to use Octokit's repos.listContributors method for the same 
+            // repository to check if it returns a "No Content" response, which means that the earlier paginate method
+            // threw because of an empty repo, which means we can ignore the error and us the empty contributors array instantiated earlier. 
+            // For more information on this unintentional error, see this GitHub issue from Octokit's paginate repository;
+            // https://github.com/octokit/plugin-paginate-rest.js/issues/158 
             try {
                 repoContributors = await this.paginate(this.repos.listContributors, { owner: repo.owner.login, repo: repo.name, ...parameters });
             } catch(err) {
@@ -84,6 +91,13 @@ const trueContributors = {
         let desiredParams = this._createParamsFromObject(["owner", "repo", "since"], parameters);
         // If since is a parameter, use listCommitContributors method. If not, use octokit's faster listContributors endpoint
         let contributors = [];
+        // The reason for the below try/catch statement is that using Octokit's paginate method on the
+        // repos.listContributors endpoint will throw an unintentional TypeError if the repo is empty. The workaround 
+        // if an error is thrown from the paginate method is to use Octokit's repos.listContributors method for the same 
+        // repository to check if it returns a "No Content" response, which means that the earlier paginate method
+        // threw because of an empty repo, which means we can ignore the error and us the empty contributors array instantiated earlier. 
+        // For more information on this unintentional error, see this GitHub issue from Octokit's paginate repository;
+        // https://github.com/octokit/plugin-paginate-rest.js/issues/158 
         try {
             contributors = (desiredParams.since) ? 
                 await this.listCommitContributors(desiredParams) : 
@@ -108,6 +122,11 @@ const trueContributors = {
     async listCommitContributors(parameters) {
         let desiredParams = this._createParamsFromObject(["owner", "repo", "sha", "path", "since", "until"], parameters);
         let commits = [];
+        // The reason for the below try/catch statement is that using Octokit's paginate method on the
+        // repos.listCommits endpoint will throw an unintentional 409 error if the repo is empty. If the error code is
+        // 409, we can assume it is unintentional and continue by using the empty commits array instantiated earlier. 
+        // For more information on this unintentional error, see this GitHub issue from Octokit's paginate repository;
+        // https://github.com/octokit/plugin-paginate-rest.js/issues/158 
         try {
             commits = await this.paginate(this.repos.listCommits, desiredParams);
         } catch(err) {
@@ -152,11 +171,11 @@ const trueContributors = {
         if(!contributionIdentifier) throw "Error: no contribution identifier was given to _aggregateContributions";
         // Use JSON to create a dictionary of users and their contributions
         let contributorDictionary = contributions
-            .filter((contribution) => {
+            .filter((contribution) => { // Filter contributors with null values for contributionIdentifiers and throw if contributionIdentifier is not a property of the contribution   
                 if(!contribution.hasOwnProperty(contributionIdentifier)) throw `Error: contribution ${JSON.stringify(contribution)} has no property ${contributionIdentifier}`;
                 return contribution[contributionIdentifier];
             })
-            .map((contribution) => ( {...contribution[contributionIdentifier], contributions: 1} ))
+            .map((contribution) => ( {...contribution[contributionIdentifier], contributions: 1} )) // Create array of shallow user copies with added contributions property 
             .reduce(this._reduceContributors, {});
         return this._contributorDictToArr(contributorDictionary);
     },
