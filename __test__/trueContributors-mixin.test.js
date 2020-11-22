@@ -196,6 +196,74 @@ describe("_createParamsFromObject()", () => {
     });
 });
 
+describe("_reduceContributions()", () => {
+    test("should throw if contributor does not have contributions property", () => {
+        const input = [
+            {id: 1, contributions: 15},
+            {id: 2, contributions: 5},
+            {id: 1},
+            {id: 3, contributions: 47},
+            {id: 2, contributions: 7},
+            {id: 4, contributions: 32}
+        ];
+        
+        expect(() => input.reduce(octokit._reduceContributors, {})).toThrow();
+    });
+
+    test("should throw if contributor does not have id property", () => {
+        const input = [
+            {id: 1, contributions: 15},
+            {id: 2, contributions: 5},
+            {contributions: 17},
+            {id: 3, contributions: 47},
+            {id: 2, contributions: 7},
+            {id: 4, contributions: 32}
+        ];
+        
+        expect(() => input.reduce(octokit._reduceContributors, {})).toThrow();
+    });
+
+    test("should return an empty dictionary for an empty list", () => {
+        const input = [];
+
+        const output = {};
+
+        expect(input.reduce(octokit._reduceContributors, {})).toEqual(output);
+    });
+
+    test("should return a dictionary with one contributor if list with one contributors is given", () => {
+        const input = [
+            {id: 1, contributions: 15}
+        ];
+
+        const output = {
+            1: {id: 1, contributions: 15}
+        };
+        
+        expect(input.reduce(octokit._reduceContributors, {})).toEqual(output);
+    });
+
+    test("should reduce a set of contributors to contributor dictionary", () => {
+        const input = [
+            {id: 1, contributions: 15},
+            {id: 2, contributions: 5},
+            {id: 1, contributions: 17},
+            {id: 3, contributions: 47},
+            {id: 2, contributions: 7},
+            {id: 4, contributions: 32}
+        ];
+
+        const output = {
+            1: {id: 1, contributions: 32},
+            2: {id: 2, contributions: 12},
+            3: {id: 3, contributions: 47},
+            4: {id: 4, contributions: 32}
+        };
+        
+        expect(input.reduce(octokit._reduceContributors, {})).toEqual(output);
+    });
+});
+
 describe("_aggregateContributions()", () => {
     test("should throw if input identifier not given", () => {
         const input = [];

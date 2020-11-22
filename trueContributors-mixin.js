@@ -168,8 +168,8 @@ const trueContributors = {
      * @return {Object}                         [Dictionary of contributors mapping users to user metadata containing contribution count]
      */
     _reduceContributors(contributorDict, contributor) {
-        if(!contributor.hasOwnProperty("contributions")) throw `Error: contributor ${JSON.stringify(cont)} has no property contributions`;
-        if(!contributor.hasOwnProperty("id")) throw `Error: contributor ${JSON.stringify(cont)} has no property id`;
+        if(!contributor.hasOwnProperty("contributions")) throw `Error: contributor ${JSON.stringify(contributor)} has no property contributions`;
+        if(!contributor.hasOwnProperty("id")) throw `Error: contributor ${JSON.stringify(contributor)} has no property id`;
         // If user id for this contributor exists in dictionary, add a contribution to that user
         if(contributor.id in contributorDict) {
             contributorDict[contributor.id].contributions += contributor.contributions;
