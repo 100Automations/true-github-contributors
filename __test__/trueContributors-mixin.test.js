@@ -419,6 +419,10 @@ describe("_aggregateContributors()", () => {
     });
 });
 
+describe("_listContributors()" , () => {
+    
+});
+
 describe("listCommentContributors()", () => {
     afterEach(() => {
         sinon.restore();
