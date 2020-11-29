@@ -150,18 +150,6 @@ const trueContributors = {
     },
 
     /**
-     * Helper method to aggregate GitHub contributor objects
-     * @param  {Array}  contributors           [Array of GitHub contributor objects]
-     * @return {Array}                         [Array of GitHub users with data about how many contributions they made]
-     */
-    _aggregateContributors(contributors) {
-        // Use JSON to create a dictionary of users and their contributions
-        let contributorDictionary = contributors.reduce(this._reduceContributors, {});
-        // Convert JSON dictionary to a list of users
-        return this._contributorDictToArr(contributorDictionary);
-    },
-
-    /**
      * Helper method to aggregate GitHub contribution objects
      * @param  {Array}  contributions           [Array of GitHub contribution objects]
      * @param  {String} contributionIdentifier  [Porperty name used in contribution object that represents contributor]
@@ -175,8 +163,19 @@ const trueContributors = {
                 if(!contribution.hasOwnProperty(contributionIdentifier)) throw `Error: contribution ${JSON.stringify(contribution)} has no property ${contributionIdentifier}`;
                 return contribution[contributionIdentifier];
             })
-            .map((contribution) => ( {...contribution[contributionIdentifier], contributions: 1} )) // Create array of shallow user copies with added contributions property 
-            .reduce(this._reduceContributors, {});
+            .map((contribution) => ( {...contribution[contributionIdentifier], contributions: 1} )); // Create array of shallow user copies with added contributions property 
+        return this._aggregateContributors(contributorDictionary);
+    },
+
+    /**
+     * Helper method to aggregate GitHub contributor objects
+     * @param  {Array}  contributors           [Array of GitHub contributor objects]
+     * @return {Array}                         [Array of GitHub users with data about how many contributions they made]
+     */
+    _aggregateContributors(contributors) {
+        // Use JSON to create a dictionary of users and their contributions
+        let contributorDictionary = contributors.reduce(this._reduceContributors, {});
+        // Convert JSON dictionary to a list of users
         return this._contributorDictToArr(contributorDictionary);
     },
 
