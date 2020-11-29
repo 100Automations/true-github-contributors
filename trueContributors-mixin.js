@@ -90,24 +90,9 @@ const trueContributors = {
     async listCommitCommentContributors(parameters) {
         let desiredParams = this._createParamsFromObject(["owner", "repo", "since"], parameters);
         // If since is a parameter, use listCommitContributors method. If not, use octokit's faster listContributors endpoint
-        let contributors = [];
-        // The reason for the below try/catch statement is that using Octokit's paginate method on the
-        // repos.listContributors endpoint will throw an unintentional TypeError if the repo is empty. The workaround 
-        // if an error is thrown from the paginate method is to use Octokit's repos.listContributors method for the same 
-        // repository to check if it returns a "No Content" response, which means that the earlier paginate method
-        // threw because of an empty repo, which means we can ignore the error and us the empty contributors array instantiated earlier. 
-        // For more information on this unintentional error, see this GitHub issue from Octokit's paginate repository;
-        // https://github.com/octokit/plugin-paginate-rest.js/issues/158 
-        try {
-            contributors = (desiredParams.since) ? 
+        let contributors = (desiredParams.since) ? 
                 await this.listCommitContributors(desiredParams) : 
-                await this.paginate(this.repos.listContributors, desiredParams);
-        } catch(err) {
-            // Check to see if error through from Status Code 204 from repos.listContributors
-            if(desiredParams.since) throw err;
-            let res = await this.repos.listContributors(desiredParams);
-            if(res.status != 204 || res.headers.status != "204 No Content") throw err;
-        }
+                await this._listContributors(desiredParams);
 
         let commentContributors = await this.listCommentContributors(desiredParams);
 
@@ -147,6 +132,25 @@ const trueContributors = {
         let desiredParams = this._createParamsFromObject(["owner", "repo", "since"], parameters);
         let issueComments = await this.paginate(this.issues.listCommentsForRepo, desiredParams);
         return this._aggregateContributions(issueComments, "user");
+    },
+
+    async _listContributors(parameters) {
+        let contributors = [];
+        // The reason for the below try/catch statement is that using Octokit's paginate method on the
+        // repos.listContributors endpoint will throw an unintentional TypeError if the repo is empty. The workaround 
+        // if an error is thrown from the paginate method is to use Octokit's repos.listContributors method for the same 
+        // repository to check if it returns a "No Content" response, which means that the earlier paginate method
+        // threw because of an empty repo, which means we can ignore the error and us the empty contributors array instantiated earlier. 
+        // For more information on this unintentional error, see this GitHub issue from Octokit's paginate repository;
+        // https://github.com/octokit/plugin-paginate-rest.js/issues/158 
+        try {
+            contributors = this.paginate(this.repos.listContributors, parameters);
+        } catch(err) {
+            // Check to see if error through from Status Code 204 from repos.listContributors
+            let res = await this.repos.listContributors(parameters);
+            if(res.status != 204 || res.headers.status != "204 No Content") throw err;
+        }
+        return contributors;
     },
 
     /**
