@@ -120,6 +120,16 @@ const trueContributors = {
         return this._aggregateContributions(issueComments, "user");
     },
 
+    /**
+     * Helper method to fetch paginated list of GitHub contributors. Even though Octokit has an endpoint to 
+     * fetch a paginated list of commit contributors [i.e octokit.paginate(octokit.repos.listContributors, ...)],
+     * this main motivation for this helper method is to include functionality to check for an unintended Type Error
+     * that octokit.paginate(octokit.repos.listContributors, ...) throws when a given repo is empty. I wanted this mixin
+     * to not throw errors on empty repos, which is why I made this helper method. 
+     * For more information on this unintentional error, see this GitHub issue from Octokit's paginate repository;
+     * https://github.com/octokit/plugin-paginate-rest.js/issues/158 
+     * @param {String} parameters       [Parameters to be used in GitHub API request] 
+     */
     async _listContributors(parameters) {
         let contributors = [];
         // The reason for the below try/catch statement is that using Octokit's paginate method on the
