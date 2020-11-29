@@ -45,21 +45,7 @@ const trueContributors = {
 
         let contributors = [];
         for(let repo of repos) {
-            let repoContributors = []
-            // The reason for the below try/catch statement is that using Octokit's paginate method on the
-            // repos.listContributors endpoint will throw an unintentional TypeError if the repo is empty. The workaround 
-            // if an error is thrown from the paginate method is to use Octokit's repos.listContributors method for the same 
-            // repository to check if it returns a "No Content" response, which means that the earlier paginate method
-            // threw because of an empty repo, which means we can ignore the error and us the empty contributors array instantiated earlier. 
-            // For more information on this unintentional error, see this GitHub issue from Octokit's paginate repository;
-            // https://github.com/octokit/plugin-paginate-rest.js/issues/158 
-            try {
-                repoContributors = await this.paginate(this.repos.listContributors, { owner: repo.owner.login, repo: repo.name, ...parameters });
-            } catch(err) {
-                // If the error message is not regarding an empty repo, then propagate error
-                let res = await this.repos.listContributors({ owner: repo.owner.login, repo: repo.name, ...parameters });
-                if(res.status != 204 || res.headers.status != "204 No Content") throw err;
-            }
+            let repoContributors = await this._listContributors({ owner: repo.owner.login, repo: repo.name, ...parameters });
             contributors = contributors.concat(repoContributors);
         }
         return this._aggregateContributors(contributors);
