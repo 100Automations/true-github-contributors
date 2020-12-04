@@ -420,7 +420,105 @@ describe("_aggregateContributors()", () => {
 });
 
 describe("_listContributors()" , () => {
-    
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    test("should throw if paginate throws an error other than the unintended type error relating to empty repos", async () => {
+        const paginateError = new TypeError("Cannot use 'in' operator to search for 'total_count' in undefined");
+        sinon.stub(octokit, "paginate").throws(paginateError);
+        sinon.stub(octokit.repos, "listContributors").resolves({ status: 401, headers: { status: "This is a random error" } });
+
+        const input = { owner: "test", repo: "test" };
+
+        expect.assertions(1);
+        try {
+            await octokit._listContributors(input);
+        } catch(error) {
+            expect(error).toEqual(paginateError);
+        }
+    });
+
+    test("should throw if paginate throws an error with wrong message", async () => {
+        const paginateError = new TypeError("Cannot use 'in' operator to search for 'total_count' in undefined");
+        sinon.stub(octokit, "paginate").throws(paginateError);
+        sinon.stub(octokit.repos, "listContributors").resolves({ status: 204, headers: { status: "This is the wrong message" } });
+
+        const input = { owner: "test", repo: "test" };
+
+        expect.assertions(1);
+        try {
+            await octokit._listContributors(input);
+        } catch(error) {
+            expect(error).toEqual(paginateError);
+        }
+    });
+
+    test("should throw if paginate throws an error with wrong code", async () => {
+        const paginateError = new TypeError("Cannot use 'in' operator to search for 'total_count' in undefined");
+        sinon.stub(octokit, "paginate").throws(paginateError);
+        sinon.stub(octokit.repos, "listContributors").resolves({ status: 201, headers: { status: "204 No Content" } });
+
+        const input = { owner: "test", repo: "test" };
+
+        expect.assertions(1);
+        try {
+            await octokit._listContributors(input);
+        } catch(error) {
+            expect(error).toEqual(paginateError);
+        }
+    });
+
+    test("should return empty list if paginate throws but listContributors returns empty repo", async () => {
+        const paginateError = new TypeError("Cannot use 'in' operator to search for 'total_count' in undefined");
+        sinon.stub(octokit, "paginate").throws(paginateError);
+        sinon.stub(octokit.repos, "listContributors").resolves({ status: 204, headers: { status: "204 No Content" } });
+
+        const input = { owner: "test", repo: "test" };
+
+        const output = [];
+
+        expect(await octokit._listContributors(input)).toEqual(output);
+    });
+
+    test("should return an empty list of contributors if paginate returns an empty list", async () => {
+        sinon.stub(octokit, "paginate").resolves([]);
+        const input = { owner: "test", repo: "test" };
+
+        const output = [];
+
+        expect(await octokit._listContributors(input)).toEqual(output);
+    });
+
+    test("should return an list with one contributor if paginate returns a one contributor", async () => {
+        sinon.stub(octokit, "paginate").resolves([
+            { id: 201, contributions: 3 }
+        ]);
+        const input = { owner: "test", repo: "test" };
+
+        const output = [
+            { id: 201, contributions: 3 }
+        ];
+
+        expect(await octokit._listContributors(input)).toEqual(output);
+    });
+
+    test("should return a list of contributors if paginate does not throw an error", async () => {
+        sinon.stub(octokit, "paginate").resolves([
+            { id: 202, contributions: 5 },
+            { id: 201, contributions: 3 },
+            { id: 203, contributions: 1 }
+        ]);
+        const input = { owner: "test", repo: "test" };
+
+        const output = [
+            { id: 202, contributions: 5 },
+            { id: 201, contributions: 3 },
+            { id: 203, contributions: 1 }
+        ];
+
+        expect(await octokit._listContributors(input)).toEqual(output);
+    });
 });
 
 describe("listCommentContributors()", () => {
