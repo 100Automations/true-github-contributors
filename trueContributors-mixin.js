@@ -6,15 +6,7 @@ const trueContributors = {
      * @return {Array}                  [Array of GitHub users with data about how many commit and comment contributions they made to an organization]
      */
     async listCommitCommentContributorsForOrg(parameters) {
-        let desiredParams = this._createParamsFromObject(["org", "type"], parameters);
-        let repos = await this.paginate(this.repos.listForOrg, desiredParams);
-        
-        let contributors = [];
-        for(let repo of repos) {
-            let repoContributors = await this.listCommitCommentContributors({owner: repo.owner.login, repo: repo.name, ...parameters});
-            contributors = contributors.concat(repoContributors);
-        }
-        return this._aggregateContributors(contributors);
+        return this._listForOrgHelper("listCommitCommentContributors", parameters);
     },
 
     /**
@@ -23,15 +15,7 @@ const trueContributors = {
      * @return {Array}                  [Array of GitHub users with data about how many commits they made to an organization]
      */
     async listCommitContributorsForOrg(parameters) {
-        let desiredParams = this._createParamsFromObject(["org", "type"], parameters);
-        let repos = await this.paginate(this.repos.listForOrg, desiredParams);
-
-        let contributors = [];
-        for(let repo of repos) {
-            let repoContributors = await this.listCommitContributors({owner: repo.owner.login, repo: repo.name, ...parameters});
-            contributors = contributors.concat(repoContributors);
-        }
-        return this._aggregateContributors(contributors);
+        return this._listForOrgHelper("listCommitContributors", parameters);
     },
 
     /**
@@ -40,15 +24,7 @@ const trueContributors = {
      * @return {Array}                  [Array of GitHub users with data about how many commits they made to an organization]
      */
     async listContributorsForOrg(parameters) {
-        let desiredParams = this._createParamsFromObject(["org", "type"], parameters);
-        let repos = await this.paginate(this.repos.listForOrg, desiredParams);
-
-        let contributors = [];
-        for(let repo of repos) {
-            let repoContributors = await this._listContributors({ owner: repo.owner.login, repo: repo.name, ...parameters });
-            contributors = contributors.concat(repoContributors);
-        }
-        return this._aggregateContributors(contributors);
+        return this._listForOrgHelper("listContributors", parameters);
     },
 
     /**
@@ -57,15 +33,7 @@ const trueContributors = {
      * @return {Array}                  [Array of GitHub users with data about how many issue comments they made to an organization]
      */
     async listCommentContributorsForOrg(parameters) {
-        let desiredParams = this._createParamsFromObject(["org", "type"], parameters);
-        let repos = await this.paginate(this.repos.listForOrg, desiredParams);
-
-        let contributors = [];
-        for(let repo of repos) {
-            let repoContributors = await this.listCommentContributors({ owner: repo.owner.login, repo: repo.name, ...parameters });
-            contributors = contributors.concat(repoContributors);
-        }
-        return this._aggregateContributors(contributors);
+        return this._listForOrgHelper("listCommentContributors", parameters);
     },
 
     /**
@@ -118,6 +86,23 @@ const trueContributors = {
         let desiredParams = this._createParamsFromObject(["owner", "repo", "since"], parameters);
         let issueComments = await this.paginate(this.issues.listCommentsForRepo, desiredParams);
         return this._aggregateContributions(issueComments, "user");
+    },
+
+    async _listForOrgHelper(endpoint, parameters){
+        let desiredParams = this._createParamsFromObject(["org", "type"], parameters);
+        let repos = await this.paginate(this.repos.listForOrg, desiredParams);
+
+        let contributors = [];
+        for(let repo of repos) {
+            let repoContributors
+            let params = { owner: repo.owner.login, repo: repo.name, ...parameters }
+            if(endpoint == "listCommentContributors") repoContributors = repoContributors = await this.listCommentContributors(params);
+            else if(endpoint == "listContributors") repoContributors = await this._listContributors(params);
+            else if(endpoint == "listCommitContributors") repoContributors = await this.listCommitContributors(params);
+            else if (endpoint == "listCommitCommentContributors") repoContributors = await this.listCommitCommentContributors(params);
+            contributors = contributors.concat(repoContributors);
+        }
+        return this._aggregateContributors(contributors);
     },
 
     /**
