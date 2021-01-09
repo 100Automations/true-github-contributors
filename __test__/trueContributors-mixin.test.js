@@ -11,6 +11,7 @@ describe("_sortByContributions()", () => {
         const inputB = { id: 2 };
 
         expect(() => octokit._sortByContributions(inputA, inputB)).toThrow();
+        expect(() => octokit._sortByContributions(inputB, inputA)).toThrow();
     });
 
     test("should return less than 0 when a has more contributions than b", () => {
