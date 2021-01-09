@@ -73,7 +73,7 @@ describe("_contributorDictToArr()", () => {
         expect(octokit._contributorDictToArr(input)).toEqual(output);
     });
 
-    test("should list of contributor objects sorted by contributions", () => {
+    test("should return list of contributor objects sorted by contributions", () => {
         const input = {
             1: {id: 1, contributions: 15},
             2: {id: 2, contributions: 7},
