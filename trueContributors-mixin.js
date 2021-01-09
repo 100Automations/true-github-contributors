@@ -221,6 +221,8 @@ const trueContributors = {
 
     /**
      * Helper method to provide a sorting function based on a property called "contributions"
+     * @param {Object} a               [Contributor object]
+     * @param {Object} b               [Contributor object]
      * @return {Integer}               [An integer used to determine order between contribution comparison]
      */
     _sortByContributions(a, b) {
