@@ -160,7 +160,7 @@ const trueContributors = {
     },
 
     /**
-     * Helper method to aggregate GitHub contributor objects
+     * Helper method to aggregate an array of GitHub contributor objects
      * @param  {Array}  contributors           [Array of GitHub contributor objects]
      * @return {Array}                         [Array of GitHub users with data about how many contributions they made]
      */
@@ -173,6 +173,7 @@ const trueContributors = {
 
     /**
      * Helper method to pass to Array.reduce() that reduces a list of contributors
+     * This method will modify the original contributors object in the given array.
      * @param  {Object}  contributorDict        [Accumulator dictionary that will be used for reduce function]
      * @param  {Object} contributor             [Current contributor in the array]
      * @return {Object}                         [Dictionary of contributors mapping users to user metadata containing contribution count]
