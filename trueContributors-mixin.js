@@ -88,6 +88,13 @@ const trueContributors = {
         return this._aggregateContributions(issueComments, "user");
     },
 
+    /**
+     * Helper method used by organization contributor methods to chain said method call to the correct subsequent 
+     * endpoint. This helper was created to reduce the amount of reduncancy in the organization 
+     * contributor fetching methods. 
+     * @param {String} endpoint         [Endpoint to fetch contributors with]
+     * @param {String} parameters       [Parameters to be used in GitHub API request] 
+     */
     async _listForOrgHelper(endpoint, parameters){
         let desiredParams = this._createParamsFromObject(["org", "type"], parameters);
         let repos = await this.paginate(this.repos.listForOrg, desiredParams);
