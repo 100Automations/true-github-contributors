@@ -227,7 +227,7 @@ const trueContributors = {
      * @return {Integer}               [An integer used to determine order between contribution comparison]
      */
     _sortByContributions(a, b) {
-        if(a["contributions"] == undefined || b["contributions"] == undefined) throw `Error: tried to sort by contributions while object has no contribution property`;
+        if(a["contributions"] == undefined || b["contributions"] == undefined) throw new ReferenceError("Error: tried to sort by contributions while object has no contribution property.");
         return b["contributions"] - a["contributions"];
     }
 

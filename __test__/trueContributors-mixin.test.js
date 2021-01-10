@@ -9,9 +9,21 @@ describe("_sortByContributions()", () => {
     test("should throw error if argument has no contribution property", () => {
         const inputA = { id: 1, contributions: 16 };
         const inputB = { id: 2 };
+        const noContrError = new ReferenceError("Error: tried to sort by contributions while object has no contribution property.");
 
-        expect(() => octokit._sortByContributions(inputA, inputB)).toThrow();
-        expect(() => octokit._sortByContributions(inputB, inputA)).toThrow();
+        try {
+            octokit._sortByContributions(inputA, inputB)
+        } catch(error) {
+            expect(error).toBeInstanceOf(ReferenceError);
+            expect(error).toEqual(noContrError);
+        }
+
+        try {
+            octokit._sortByContributions(inputB, inputA)
+        } catch(error) {
+            expect(error).toBeInstanceOf(ReferenceError);
+            expect(error).toEqual(noContrError);
+        }
     });
 
     test("should leave inputs unmodified", () => {
