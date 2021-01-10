@@ -173,20 +173,19 @@ const trueContributors = {
 
     /**
      * Helper method to pass to Array.reduce() that reduces a list of contributors
-     * This method will modify the original contributors object in the given array.
      * @param  {Object}  contributorDict        [Accumulator dictionary that will be used for reduce function]
      * @param  {Object} contributor             [Current contributor in the array]
      * @return {Object}                         [Dictionary of contributors mapping users to user metadata containing contribution count]
      */
     _reduceContributors(contributorDict, contributor) {
-        if(!contributor.hasOwnProperty("contributions")) throw `Error: contributor ${JSON.stringify(contributor)} has no property contributions`;
-        if(!contributor.hasOwnProperty("id")) throw `Error: contributor ${JSON.stringify(contributor)} has no property id`;
+        if(!contributor.hasOwnProperty("contributions")) throw new ReferenceError(`Error: contributor ${JSON.stringify(contributor)} has no property contributions.`);
+        if(!contributor.hasOwnProperty("id")) throw new ReferenceError(`Error: contributor ${JSON.stringify(contributor)} has no property id.`);
         // If user id for this contributor exists in dictionary, add a contribution to that user
         if(contributor.id in contributorDict) {
             contributorDict[contributor.id].contributions += contributor.contributions;
         // If user id for this comment does not exist, add user to dictionary
         } else {
-            contributorDict[contributor.id] = contributor
+            contributorDict[contributor.id] = { ...contributor }
         }
         return contributorDict;
     },
