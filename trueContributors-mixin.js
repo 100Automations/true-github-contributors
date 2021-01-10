@@ -165,9 +165,9 @@ const trueContributors = {
      * @return {Array}                         [Array of GitHub users with data about how many contributions they made]
      */
     _aggregateContributors(contributors) {
-        // Use JSON to create a dictionary of users and their contributions
+        // Reduce contributors list to dictionary of unique contributors with total contributions
         let contributorDictionary = contributors.reduce(this._reduceContributors, {});
-        // Convert JSON dictionary to a list of users
+        // Convert dictionary to sorted array
         return this._contributorDictToArr(contributorDictionary);
     },
 

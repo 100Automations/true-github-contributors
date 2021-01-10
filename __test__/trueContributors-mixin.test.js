@@ -385,6 +385,122 @@ describe("_reduceContributions()", () => {
     });
 });
 
+describe("_aggregateContributors()", () => {
+    test("should throw if contributor has no id property", () => {
+        const input = [
+            {id: 1, contributions: 5},
+            {id: 2, contributions: 2},
+            {contributions: 10}
+        ];
+        const noIdError = new ReferenceError(`Error: contributor {"contributions":10} has no property id.`);
+
+        expect.assertions(2);
+        try {
+            input.reduce(octokit._aggregateContributors(input));
+        } catch(error) {
+            expect(error).toBeInstanceOf(ReferenceError);
+            expect(error).toEqual(noIdError);
+        }
+    });
+
+    test("should throw if contributor has no contributions property", () => {
+        const input = [
+            {id: 1, contributions: 5},
+            {id: 2, contributions: 2},
+            {id: 3}
+        ];
+        const noContrError = new ReferenceError(`Error: contributor {"id":3} has no property contributions.`);
+
+        expect.assertions(2);
+        try {
+            input.reduce(octokit._aggregateContributors(input));
+        } catch(error) {
+            expect(error).toBeInstanceOf(ReferenceError);
+            expect(error).toEqual(noContrError);
+        }
+    });
+
+    test("should leave input unmodified", () => {
+        const input = [
+            {id: 1, contributions: 15},
+            {id: 2, contributions: 5},
+            {id: 1, contributions: 17},
+            {id: 3, contributions: 47},
+            {id: 2, contributions: 7},
+            {id: 4, contributions: 32}
+        ];
+
+        const originalInput = [
+            {id: 1, contributions: 15},
+            {id: 2, contributions: 5},
+            {id: 1, contributions: 17},
+            {id: 3, contributions: 47},
+            {id: 2, contributions: 7},
+            {id: 4, contributions: 32}
+        ];
+
+        octokit._aggregateContributors(input);
+
+        expect(input).toEqual(originalInput);
+    });
+
+    test("should return an empty array when given empty contributors array", () => {
+        const input = [];
+
+        const output = [];
+
+        expect(octokit._aggregateContributors(input)).toEqual(output);
+    });
+
+    test("should leave a list of unique contributors unchanged but sorted", () => {
+        const input = [
+            {id: 1, contributions: 15},
+            {id: 2, contributions: 5},
+            {id: 3, contributions: 47}
+        ];
+
+        const output = [
+            {id: 3, contributions: 47},
+            {id: 1, contributions: 15},
+            {id: 2, contributions: 5}
+        ];
+
+        expect(octokit._aggregateContributors(input)).toEqual(output);
+    });
+
+    test("should return list of 1 contributor if given 1 contributor", () => {
+        const input = [
+            {id: 1, contributions: 15}
+        ];
+
+        const output = [
+            {id: 1, contributions: 15}
+        ];
+
+        expect(octokit._aggregateContributors(input)).toEqual(output);
+    });
+
+    test("should aggregate a list of contributors", () => {
+        const input = [
+            {id: 1, contributions: 15},
+            {id: 2, contributions: 5},
+            {id: 1, contributions: 17},
+            {id: 3, contributions: 47},
+            {id: 2, contributions: 7},
+            {id: 4, contributions: 32}
+        ];
+
+        const output = [
+            {id: 3, contributions: 47},
+            {id: 1, contributions: 32},
+            {id: 4, contributions: 32},
+            {id: 2, contributions: 12}
+        ];
+
+        expect(octokit._aggregateContributors(input)).toEqual(output);
+    });
+});
+
 describe("_aggregateContributions()", () => {
     test("should throw if input identifier not given", () => {
         const input = [];
@@ -467,76 +583,6 @@ describe("_aggregateContributions()", () => {
         ];
 
         expect(octokit._aggregateContributions(input, inputIdentifier)).toEqual(output);
-    });
-});
-
-describe("_aggregateContributors()", () => {
-    test("should throw if no argument is given", () => {
-        expect(() => octokit._aggregateContributors()).toThrow();
-    });
-
-    test("should throw if contributor has no id property", () => {
-        const input = [
-            {id: 1, contributions: 5},
-            {id: 2, contributions: 2},
-            {contributions: 10}
-        ];
-
-        expect(() => octokit._aggregateContributors(input)).toThrow();
-    });
-
-    test("should throw if contributor has no contributions property", () => {
-        const input = [
-            {id: 1, contributions: 5},
-            {id: 2, contributions: 2},
-            {id: 3}
-        ];
-
-        expect(() => octokit._aggregateContributors(input)).toThrow();
-    });
-
-    test("should return an empty array when given empty contributors array", () => {
-        const input = [];
-
-        const output = [];
-
-        expect(octokit._aggregateContributors(input)).toEqual(output);
-    });
-
-    test("should leave a list of unique contributors unchanged but sorted", () => {
-        const input = [
-            {id: 1, contributions: 15},
-            {id: 2, contributions: 5},
-            {id: 3, contributions: 47}
-        ];
-
-        const output = [
-            {id: 3, contributions: 47},
-            {id: 1, contributions: 15},
-            {id: 2, contributions: 5}
-        ];
-
-        expect(octokit._aggregateContributors(input)).toEqual(output);
-    });
-
-    test("should aggregate a list of contributors", () => {
-        const input = [
-            {id: 1, contributions: 15},
-            {id: 2, contributions: 5},
-            {id: 1, contributions: 17},
-            {id: 3, contributions: 47},
-            {id: 2, contributions: 7},
-            {id: 4, contributions: 32}
-        ];
-
-        const output = [
-            {id: 3, contributions: 47},
-            {id: 1, contributions: 32},
-            {id: 4, contributions: 32},
-            {id: 2, contributions: 12}
-        ];
-
-        expect(octokit._aggregateContributors(input)).toEqual(output);
     });
 });
 
