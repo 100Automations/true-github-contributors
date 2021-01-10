@@ -207,12 +207,12 @@ const trueContributors = {
     },
 
     /**
-     * Helper method to convert a dictionary of contributors to an array of contributors
+     * Helper method to convert a dictionary of contributors to a sorted array of contributors
      * @param  {Object} dictionary      [JSON contributor dictionary to be converted to array]
      * @return {Array}                  [Array of users sorted by their contributions]
      */
     _contributorDictToArr(dictionary) {
-        if(!dictionary) throw `Error: user dictionary is not defined`;
+        if(!dictionary) throw new ReferenceError("Error: user dictionary is not defined.");
         let array = [];
         for(let item in dictionary) {
             array.push(dictionary[item]);

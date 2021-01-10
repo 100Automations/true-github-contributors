@@ -49,11 +49,18 @@ describe("_sortByContributions()", () => {
 });
 
 describe("_contributorDictToArr()", () => {
-    test("should throw if no argument supplied", () => {
-        expect(() => octokit._contributorDictToArr()).toThrow();
+    test("should throw if dict is undefined", () => {
+        const emptyDictError = new ReferenceError("Error: user dictionary is not defined.");
+
+        try {
+            octokit._contributorDictToArr();
+        } catch(error) {
+            expect(error).toBeInstanceOf(ReferenceError);
+            expect(error).toEqual(emptyDictError);
+        }
     });
 
-    test("should throw if object does not have contributions property", () => {
+    test("should throw if a contributor object does not have contributions property", () => {
         const input = {
             1: {id: 1, contributions: 15},
             2: {id: 2, contributions: 7},
@@ -61,8 +68,35 @@ describe("_contributorDictToArr()", () => {
             4: {id: 4, contributions: 6},
             5: {id: 5, contributions: 7}
         };
+        const noContrError = new ReferenceError("Error: tried to sort by contributions while object has no contribution property.");
 
-        expect(() => octokit._contributorDictToArr(input)).toThrow();
+
+        try {
+            octokit._contributorDictToArr(input);
+        } catch(error) {
+            expect(error).toBeInstanceOf(ReferenceError);
+            expect(error).toEqual(noContrError);
+        }
+    });
+
+    test("should leave original input unmodified", () => {
+        const input = {
+            1: {id: 1, contributions: 15},
+            2: {id: 2, contributions: 7},
+            3: {id: 3, contributions: 24},
+            4: {id: 4, contributions: 6},
+            5: {id: 5, contributions: 7}
+        };
+        const originalInput = {
+            1: {id: 1, contributions: 15},
+            2: {id: 2, contributions: 7},
+            3: {id: 3, contributions: 24},
+            4: {id: 4, contributions: 6},
+            5: {id: 5, contributions: 7}
+        };
+
+        octokit._contributorDictToArr(input);
+        expect(input).toEqual(originalInput);
     });
 
     test("should return an empty array when given an empty dictionary", () => {
