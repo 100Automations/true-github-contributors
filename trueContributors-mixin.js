@@ -193,13 +193,13 @@ const trueContributors = {
 
     /**
      * Helper method to fetch desired parameters from a given parameters object
-     * @param  {Array}  desiredParameters       [Array of parameter names]
-     * @param  {String} givenObject             [Object containing parameter values]
-     * @return {Object}                         [Object with desired parameters]
+     * @param  {Array}  desiredParameters       [Array of parameter string names]
+     * @param  {String} givenObject             [Object containing parameter names and their values]
+     * @return {Object}                         [Object with desired parameter names and their values]
      */
     _createParamsFromObject(desiredParameters, givenObject) {
         let parameters = {};
-        for(parameter of desiredParameters) {
+        for(let parameter of desiredParameters) {
             let parameterValue = givenObject[parameter];
             if(parameterValue) parameters[parameter] = parameterValue; 
         }

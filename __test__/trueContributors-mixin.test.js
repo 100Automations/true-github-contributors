@@ -162,7 +162,7 @@ describe("_createParamsFromObject()", () => {
         expect(octokit._createParamsFromObject(desiredParameters, givenObject)).toEqual(output);
     });
 
-    test("should return an empty object if params list is empty", () => {
+    test("should return an empty object if desired params list is empty", () => {
         const desiredParameters = [];
         const givenObject = {
             randomParam1: "value",
@@ -175,6 +175,30 @@ describe("_createParamsFromObject()", () => {
         expect(octokit._createParamsFromObject(desiredParameters, givenObject)).toEqual(output);
     });
 
+    test("given parameters object should be unchanged", () => {
+        const desiredParameters = ["desiredParam1", "desiredParam2", "desiredParam3"];
+        const givenObject = {
+            desiredParam1: "value1",
+            randomParam1: "value2",
+            desiredParam2: "value3",
+            randomParam2: "value4",
+            desiredParam3: "value5",
+            randomParam3: "value6"
+        };
+        const givenObjectOriginal = {
+            desiredParam1: "value1",
+            randomParam1: "value2",
+            desiredParam2: "value3",
+            randomParam2: "value4",
+            desiredParam3: "value5",
+            randomParam3: "value6"
+        };
+
+        octokit._createParamsFromObject(desiredParameters, givenObject)
+
+        expect(givenObject).toEqual(givenObjectOriginal);
+    });
+
     test("should return an empty object if no desired params are found", () => {
         const desiredParameters = ["desiredParam1", "desiredParam2", "desiredParam3"];
         const givenObject = {
@@ -184,6 +208,37 @@ describe("_createParamsFromObject()", () => {
         };
 
         const output = {};
+
+        expect(octokit._createParamsFromObject(desiredParameters, givenObject)).toEqual(output);
+    });
+
+    test("should ignore params that are declared but undefined", () => {
+        const desiredParameters = ["desiredParam1", "desiredParam2", "desiredParam3"];
+        const givenObject = {
+            desiredParam1: "value",
+            desiredParam2: undefined,
+            desiredParam3: "value"
+        };
+
+        const output = {
+            desiredParam1: "value",
+            desiredParam3: "value"
+        };
+
+        expect(octokit._createParamsFromObject(desiredParameters, givenObject)).toEqual(output);
+    });
+
+    test("should return dictionary of size 1 if given desirerd param array of size 1", () => {
+        const desiredParameters = ["desiredParam1"];
+        const givenObject = {
+            desiredParam1: "value",
+            randomParam2: "value",
+            randomParam3: "value"
+        };
+
+        const output = {
+            desiredParam1: "value"
+        };
 
         expect(octokit._createParamsFromObject(desiredParameters, givenObject)).toEqual(output);
     });
@@ -202,52 +257,6 @@ describe("_createParamsFromObject()", () => {
         const output = {
             desiredParam1: "value",
             desiredParam2: "value",
-            desiredParam3: "value"
-        };
-
-        expect(octokit._createParamsFromObject(desiredParameters, givenObject)).toEqual(output);
-    });
-
-    test("given parameters object should be unchanged", () => {
-        const desiredParameters = ["desiredParam1", "desiredParam2", "desiredParam3"];
-        const givenObject = {
-            desiredParam1: "value",
-            randomParam1: "value",
-            desiredParam2: "value",
-            randomParam2: "value",
-            desiredParam3: "value",
-            randomParam3: "value"
-        };
-        const givenObjectOriginal = {
-            desiredParam1: "value",
-            randomParam1: "value",
-            desiredParam2: "value",
-            randomParam2: "value",
-            desiredParam3: "value",
-            randomParam3: "value"
-        };
-
-        const output = {
-            desiredParam1: "value",
-            desiredParam2: "value",
-            desiredParam3: "value"
-        };
-
-        octokit._createParamsFromObject(desiredParameters, givenObject)
-
-        expect(givenObject).toEqual(givenObjectOriginal);
-    });
-
-    test("should ignore params that are declared but undefined", () => {
-        const desiredParameters = ["desiredParam1", "desiredParam2", "desiredParam3"];
-        const givenObject = {
-            desiredParam1: "value",
-            desiredParam2: undefined,
-            desiredParam3: "value"
-        };
-
-        const output = {
-            desiredParam1: "value",
             desiredParam3: "value"
         };
 
