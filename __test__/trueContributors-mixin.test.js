@@ -245,6 +245,19 @@ describe("_createParamsFromObject()", () => {
         expect(octokit._createParamsFromObject(desiredParameters, givenObject)).toEqual(output);
     });
 
+    test("should return dictionary of size 1 if given parameters dictionary is of size 1", () => {
+        const desiredParameters = ["desiredParam1", "desiredParam2", "desiredParam3"];
+        const givenObject = {
+            desiredParam1: "value"
+        };
+
+        const output = {
+            desiredParam1: "value"
+        };
+
+        expect(octokit._createParamsFromObject(desiredParameters, givenObject)).toEqual(output);
+    });
+
     test("should create desired list of params", () => {
         const desiredParameters = ["desiredParam1", "desiredParam2", "desiredParam3"];
         const givenObject = {
