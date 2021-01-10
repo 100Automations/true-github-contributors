@@ -11,6 +11,7 @@ describe("_sortByContributions()", () => {
         const inputB = { id: 2 };
         const noContrError = new ReferenceError("Error: tried to sort by contributions while object has no contribution property.");
 
+        expect.assertions(4);
         try {
             octokit._sortByContributions(inputA, inputB)
         } catch(error) {
@@ -64,6 +65,7 @@ describe("_contributorDictToArr()", () => {
     test("should throw if dict is undefined", () => {
         const emptyDictError = new ReferenceError("Error: user dictionary is not defined.");
 
+        expect.assertions(2);
         try {
             octokit._contributorDictToArr();
         } catch(error) {
@@ -82,7 +84,7 @@ describe("_contributorDictToArr()", () => {
         };
         const noContrError = new ReferenceError("Error: tried to sort by contributions while object has no contribution property.");
 
-
+        expect.assertions(2);
         try {
             octokit._contributorDictToArr(input);
         } catch(error) {
