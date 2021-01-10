@@ -14,6 +14,19 @@ describe("_sortByContributions()", () => {
         expect(() => octokit._sortByContributions(inputB, inputA)).toThrow();
     });
 
+    test("should leave inputs unmodified", () => {
+        const inputA = { id: 1, contributions: 16 };
+        const inputB = { id: 2, contributions: 15 };
+
+        const inputAOriginal = { id: 1, contributions: 16 };
+        const inputBOriginal = { id: 2, contributions: 15 };
+
+        octokit._sortByContributions(inputA, inputB)
+
+        expect(inputA).toEqual(inputAOriginal);
+        expect(inputB).toEqual(inputBOriginal);
+    });
+
     test("should return less than 0 when a has more contributions than b", () => {
         const inputA = { id: 1, contributions: 16 };
         const inputB = { id: 2, contributions: 15 };

@@ -221,20 +221,14 @@ const trueContributors = {
     },
 
     /**
-     * Helper method to provide a sorting function based on a property called "contributions"
+     * Helper sorting function method to pass to sorting function based on a property called "contributions"
      * @param {Object} a               [Contributor object]
      * @param {Object} b               [Contributor object]
      * @return {Integer}               [An integer used to determine order between contribution comparison]
      */
     _sortByContributions(a, b) {
         if(a["contributions"] == undefined || b["contributions"] == undefined) throw `Error: tried to sort by contributions while object has no contribution property`;
-        if (a["contributions"] < b["contributions"]) {
-            return 1;
-        }
-        if (a["contributions"] > b["contributions"]) {
-            return -1;
-        }
-        return 0;
+        return b["contributions"] - a["contributions"];
     }
 
 }
