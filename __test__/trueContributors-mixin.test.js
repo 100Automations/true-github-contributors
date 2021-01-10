@@ -175,8 +175,9 @@ describe("_createParamsFromObject()", () => {
         expect(octokit._createParamsFromObject(desiredParameters, givenObject)).toEqual(output);
     });
 
-    test("given parameters object should be unchanged", () => {
+    test("given parameters object and desired params array should be unchanged", () => {
         const desiredParameters = ["desiredParam1", "desiredParam2", "desiredParam3"];
+        const originalDesiredParameters = ["desiredParam1", "desiredParam2", "desiredParam3"];
         const givenObject = {
             desiredParam1: "value1",
             randomParam1: "value2",
@@ -197,6 +198,7 @@ describe("_createParamsFromObject()", () => {
         octokit._createParamsFromObject(desiredParameters, givenObject)
 
         expect(givenObject).toEqual(givenObjectOriginal);
+        expect(desiredParameters).toEqual(originalDesiredParameters);
     });
 
     test("should return an empty object if no desired params are found", () => {
