@@ -7,7 +7,7 @@ const octokit = new Octokit();
 
 describe("_sortByContributions()", () => {
     test("should throw error if argument has no contribution property", () => {
-        const inputA = { id: 1, contributions: 15 };
+        const inputA = { id: 1, contributions: 16 };
         const inputB = { id: 2 };
 
         expect(() => octokit._sortByContributions(inputA, inputB)).toThrow();
@@ -35,17 +35,16 @@ describe("_sortByContributions()", () => {
     });
 
     test("should return greater than 0 when b has more contributions than a", () => {
-        const inputA = { id: 1, contributions: 15 };
-        const inputB = { id: 2, contributions: 16 };
+        const inputA = { id: 1, contributions: 16 };
+        const inputB = { id: 2, contributions: 15 };
 
-        expect(octokit._sortByContributions(inputA, inputB)).toBeGreaterThan(0);
+        expect(octokit._sortByContributions(inputB, inputA)).toBeGreaterThan(0);
     });
 
     test("should return 0 when a is equal to b", () => {
-        const inputA = { id: 1, contributions: 15 };
-        const inputB = { id: 2, contributions: 15 };
+        const inputA = { id: 1, contributions: 16 };
 
-        expect(octokit._sortByContributions(inputA, inputB)).toBe(0);
+        expect(octokit._sortByContributions(inputA, inputA)).toBe(0);
     });
 });
 
