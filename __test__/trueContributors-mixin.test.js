@@ -504,11 +504,18 @@ describe("_aggregateContributors()", () => {
 describe("_aggregateContributions()", () => {
     test("should throw if input identifier not given", () => {
         const input = [];
+        const noIdError = new ReferenceError("Error: no contribution identifier was given to _aggregateContributions.");
 
-        expect(() => octokit._aggregateContributions(input)).toThrow();
+        expect.assertions(2);
+        try {
+            octokit._aggregateContributions(input);
+        } catch(error) {
+            expect(error).toBeInstanceOf(ReferenceError);
+            expect(error).toEqual(noIdError);
+        }
     });
 
-    test("should throw if input identifier does not exist on object", () => {
+    test("should throw if input identifier does not exist for contribution", () => {
         const input = [
             { body: "test body", user: { id: 1 } },
             { body: "test body", user: { id: 2 } },
@@ -517,8 +524,62 @@ describe("_aggregateContributions()", () => {
             { body: "test body", user: { id: 5 } },
         ];
         const inputIdentifier = "user";
+        const noIdError = new ReferenceError(`Error: contribution {"body":"test body"} has no property user.`);
 
-        expect(() => octokit._aggregateContributions(input, inputIdentifier)).toThrow();
+        expect.assertions(2);
+        try {
+            octokit._aggregateContributions(input, inputIdentifier);
+        } catch(error) {
+            expect(error).toBeInstanceOf(ReferenceError);
+            expect(error).toEqual(noIdError);
+        }
+    });
+
+    test("should leave input unmodified", () => {
+        const input = [
+            { body: "test body", user: { id: 1 } },
+            { body: "test body", user: { id: 1 } },
+            { body: "test body", user: { id: 2 } },
+            { body: "test body", user: { id: 3 } },
+            { body: "test body", user: { id: 2 } },
+            { body: "test body", user: { id: 2 } },
+            { body: "test body", user: { id: 4 } },
+        ];
+        const inputIdentifier = "user";
+
+        const originalInput = [
+            { body: "test body", user: { id: 1 } },
+            { body: "test body", user: { id: 1 } },
+            { body: "test body", user: { id: 2 } },
+            { body: "test body", user: { id: 3 } },
+            { body: "test body", user: { id: 2 } },
+            { body: "test body", user: { id: 2 } },
+            { body: "test body", user: { id: 4 } },
+        ];
+
+        octokit._aggregateContributions(input, inputIdentifier);
+
+        expect(input).toEqual(originalInput);
+    });
+
+    test("should ignore contributions with null values for input identifier", () => {
+        const input = [
+            { body: "test body", user: { id: 1 } },
+            { body: "test body", user: { id: 2 } },
+            { body: "test body", user: null },
+            { body: "test body", user: { id: 4 } },
+            { body: "test body", user: { id: 5 } },
+        ];
+        const inputIdentifier = "user";
+
+        const output = [
+            { id: 1, contributions: 1 },
+            { id: 2, contributions: 1 },
+            { id: 4, contributions: 1 },
+            { id: 5, contributions: 1 }
+        ];
+
+        expect(octokit._aggregateContributions(input, inputIdentifier)).toEqual(output);
     });
 
     test("should return empty array when given empty array", () => {
@@ -543,12 +604,10 @@ describe("_aggregateContributions()", () => {
         expect(octokit._aggregateContributions(input, inputidentifier)).toEqual(output);
     });
 
-    test("should return sorted list of contributors", () => {
+    test("should return sorted list of contributors when there are no duplicate contributors", () => {
         const input = [
+            { body: "test body", user: { id: 5 } },
             { body: "test body", user: { id: 1 } },
-            { body: "test body", user: { id: 1 } },
-            { body: "test body", user: { id: 2 } },
-            { body: "test body", user: { id: 2 } },
             { body: "test body", user: { id: 2 } },
             { body: "test body", user: { id: 3 } },
             { body: "test body", user: { id: 4 } },
@@ -556,30 +615,36 @@ describe("_aggregateContributions()", () => {
         const inputIdentifier = "user";
 
         const output = [
-            { id: 2, contributions: 3 },
-            { id: 1, contributions: 2 },
+            { id: 1, contributions: 1 },
+            { id: 2, contributions: 1 },
             { id: 3, contributions: 1 },
-            { id: 4, contributions: 1 }
+            { id: 4, contributions: 1 },
+            { id: 5, contributions: 1 }
         ];
 
         expect(octokit._aggregateContributions(input, inputIdentifier)).toEqual(output);
     });
 
-    test("should ignore contributions with null values for input identifier", () => {
+    test("should aggregate contributions and return sorted list of contributors", () => {
         const input = [
+            { body: "test body", user: { id: 5 } },
+            { body: "test body", user: { id: 1 } },
             { body: "test body", user: { id: 1 } },
             { body: "test body", user: { id: 2 } },
-            { body: "test body", user: null },
-            { body: "test body", user: { id: 4 } },
             { body: "test body", user: { id: 5 } },
+            { body: "test body", user: { id: 3 } },
+            { body: "test body", user: { id: 2 } },
+            { body: "test body", user: { id: 2 } },
+            { body: "test body", user: { id: 4 } },
         ];
         const inputIdentifier = "user";
 
         const output = [
-            { id: 1, contributions: 1 },
-            { id: 2, contributions: 1 },
-            { id: 4, contributions: 1 },
-            { id: 5, contributions: 1 }
+            { id: 2, contributions: 3 },
+            { id: 1, contributions: 2 },
+            { id: 5, contributions: 2 },
+            { id: 3, contributions: 1 },
+            { id: 4, contributions: 1 }
         ];
 
         expect(octokit._aggregateContributions(input, inputIdentifier)).toEqual(output);

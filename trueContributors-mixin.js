@@ -142,21 +142,22 @@ const trueContributors = {
     },
 
     /**
-     * Helper method to aggregate GitHub contribution objects
+     * Helper method to aggregate GitHub contribution objects into an array of sorted contributors
      * @param  {Array}  contributions           [Array of GitHub contribution objects]
      * @param  {String} contributionIdentifier  [Porperty name used in contribution object that represents contributor]
-     * @return {Array}                          [Array of GitHub users with data about how many contributions they made]
+     * @return {Array}                          [Array of GitHub users with data about how many contributions they made sorted by contribution count]
      */
     _aggregateContributions(contributions, contributionIdentifier) {
-        if(!contributionIdentifier) throw "Error: no contribution identifier was given to _aggregateContributions";
-        // Use JSON to create a dictionary of users and their contributions
-        let contributorDictionary = contributions
-            .filter((contribution) => { // Filter contributors with null values for contributionIdentifiers and throw if contributionIdentifier is not a property of the contribution   
-                if(!contribution.hasOwnProperty(contributionIdentifier)) throw `Error: contribution ${JSON.stringify(contribution)} has no property ${contributionIdentifier}`;
+        if(!contributionIdentifier) throw new ReferenceError("Error: no contribution identifier was given to _aggregateContributions.");
+        // Convert contributions array to array of contributors 
+        let contributorArray = contributions
+            .filter((contribution) => {
+                // Filter contributors with null values for contributionIdentifiers and throw if contributionIdentifier is not a property of the contribution
+                if(!contribution.hasOwnProperty(contributionIdentifier)) throw new ReferenceError(`Error: contribution ${JSON.stringify(contribution)} has no property ${contributionIdentifier}.`);
                 return contribution[contributionIdentifier];
             })
-            .map((contribution) => ( {...contribution[contributionIdentifier], contributions: 1} )); // Create array of shallow user copies with added contributions property 
-        return this._aggregateContributors(contributorDictionary);
+            .map((contribution) => ( {...contribution[contributionIdentifier], contributions: 1} )); // Create array of shallow user copies with added contributions property
+        return this._aggregateContributors(contributorArray);
     },
 
     /**
