@@ -766,9 +766,9 @@ describe("listCommentContributors()", () => {
         const paginateStub = sinon.stub(octokit, "paginate");
         paginateStub.resolves([]);
         const inputParams = {
-            owner: "test", 
-            repo: "test", 
-            since: "test", 
+            owner: "test owner", 
+            repo: "test repo", 
+            since: "test since", 
             sort: "test", 
             direction: "test",
             per_page: 100,
@@ -776,9 +776,9 @@ describe("listCommentContributors()", () => {
         };
 
         const expectedParams = {
-            owner: "test",
-            repo: "test",
-            since: "test"
+            owner: "test owner",
+            repo: "test repo",
+            since: "test since"
         };
 
         await octokit.listCommentContributors(inputParams);
@@ -789,21 +789,21 @@ describe("listCommentContributors()", () => {
     test("should leave input parameters unchanged", async () => {
         sinon.stub(octokit, "paginate").resolves([]);
         const inputParams = {
-            owner: "test", 
-            repo: "test", 
-            since: "test", 
-            sort: "test", 
-            direction: "test",
+            owner: "test owner", 
+            repo: "test repo", 
+            since: "test since", 
+            sort: "test sort", 
+            direction: "test direction",
             per_page: 100,
             page: 5
         };
 
         const inputParamsCopy = {
-            owner: "test", 
-            repo: "test", 
-            since: "test", 
-            sort: "test", 
-            direction: "test",
+            owner: "test owner", 
+            repo: "test repo", 
+            since: "test since", 
+            sort: "test sort", 
+            direction: "test direction",
             per_page: 100,
             page: 5
         };

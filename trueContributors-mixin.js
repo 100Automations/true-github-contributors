@@ -78,7 +78,7 @@ const trueContributors = {
     },
 
     /**
-     * Method to fetch contributors list based on number of issue comments
+     * Method to fetch contributors for a repository list based on number of issue comments.
      * @param  {String} parameters      [Parameters to be used in GitHub API request]
      * @return {Array}                  [Array of GitHub users with data about how many comments they made]
      */
