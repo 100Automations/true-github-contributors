@@ -61,15 +61,12 @@ const trueContributors = {
     async listCommitContributors(parameters) {
         let desiredParams = this._createParamsFromObject(["owner", "repo", "sha", "path", "since", "until"], parameters);
         let commits = [];
-        // The reason for the below try/catch statement is that using Octokit's paginate method on the
-        // repos.listCommits endpoint will throw an unintentional 409 error if the repo is empty. If the error code is
-        // 409, we can assume it is unintentional and continue by using the empty commits array instantiated earlier. 
-        // For more information on this unintentional error, see this GitHub issue from Octokit's paginate repository;
-        // https://github.com/octokit/plugin-paginate-rest.js/issues/158 
+        // Catch unintentional paginate errors to check if called on empty repo.
+        // For more, see https://github.com/octokit/plugin-paginate-rest.js/issues/158 
         try {
             commits = await this.paginate(this.repos.listCommits, desiredParams);
         } catch(err) {
-            // If the error message is not regarding an empty repo, then propagate error
+            // If error is regarding empty repo, use empty commits array. If not, propigate error
             if(err.status != 409 || err.message != "Git Repository is empty.") {
                 throw err;
             }
