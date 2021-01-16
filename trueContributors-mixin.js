@@ -89,19 +89,24 @@ const trueContributors = {
     },
 
     /**
-     * Helper method used by organization contributor methods to chain said method call to the correct subsequent 
-     * endpoint. This helper was created to reduce the amount of reduncancy in the organization 
-     * contributor fetching methods. 
-     * @param {String} endpoint         [Endpoint to fetch contributors with]
+     * Helper method used by organization contributor methods to call corresponding subsequent endpoint 
+     * This helper was created to reduce the amount of reduncancy in the organization contributor fetching methods. 
+     * @param {String} endpoint         [Subsequent endpoint to fetch contributors with]
      * @param {String} parameters       [Parameters to be used in GitHub API request] 
      */
     async _listForOrgHelper(endpoint, parameters){
+        if(
+            endpoint != "listCommentContributors" &&
+            endpoint != "listContributors" &&
+            endpoint != "listCommitContributors" &&
+            endpoint != "listCommitCommentContributors"
+        ) throw new TypeError(`Unexpected endpoint ${endpoint} provided.`);
         let desiredParams = this._createParamsFromObject(["org", "type"], parameters);
         let repos = await this.paginate(this.repos.listForOrg, desiredParams);
 
         let contributors = [];
         for(let repo of repos) {
-            let repoContributors
+            let repoContributors;
             let params = { owner: repo.owner.login, repo: repo.name, ...parameters }
             if(endpoint == "listCommentContributors") repoContributors = repoContributors = await this.listCommentContributors(params);
             else if(endpoint == "listContributors") repoContributors = await this._listContributors(params);
