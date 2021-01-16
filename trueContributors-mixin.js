@@ -114,28 +114,25 @@ const trueContributors = {
 
     /**
      * Helper method to fetch paginated list of GitHub contributors. Even though Octokit has an endpoint to 
-     * fetch a paginated list of commit contributors [i.e octokit.paginate(octokit.repos.listContributors, ...)],
-     * this main motivation for this helper method is to include functionality to check for an unintended Type Error
+     * fetch a paginated list of commit contributors (i.e octokit.paginate(octokit.repos.listContributors, ...)),
+     * this main reason for this helper method is to include functionality to check for an unintended Type Error
      * that octokit.paginate(octokit.repos.listContributors, ...) throws when a given repo is empty. I wanted this mixin
-     * to not throw errors on empty repos, which is why I made this helper method. 
+     * to not throw errors on empty repos, but rather return an empty array.  
      * For more information on this unintentional error, see this GitHub issue from Octokit's paginate repository;
      * https://github.com/octokit/plugin-paginate-rest.js/issues/158 
      * @param {String} parameters       [Parameters to be used in GitHub API request] 
      */
     async _listContributors(parameters) {
         let contributors = [];
-        // The reason for the below try/catch statement is that using Octokit's paginate method on the
-        // repos.listContributors endpoint will throw an unintentional TypeError if the repo is empty. The workaround 
-        // if an error is thrown from the paginate method is to use Octokit's repos.listContributors method for the same 
-        // repository to check if it returns a "No Content" response, which means that the earlier paginate method
-        // threw because of an empty repo, which means we can ignore the error and us the empty contributors array instantiated earlier. 
-        // For more information on this unintentional error, see this GitHub issue from Octokit's paginate repository;
-        // https://github.com/octokit/plugin-paginate-rest.js/issues/158 
+        // Catch octokit.paginate errors to check if caused from calling paginate on empty repo.
         try {
             contributors = this.paginate(this.repos.listContributors, parameters);
         } catch(err) {
-            // Check to see if error through from Status Code 204 from repos.listContributors
+            // Use octokit.repos.listContributors to check if error stems from calling paginate on empty repo.
             let res = await this.repos.listContributors(parameters);
+            // Status 204 with message "204 No Content" means empty repo and we can ignore octokit.paginate error.
+            // Any other response will propigate the original error from octokit.paginate, as I am not sure why
+            // octokit.paginate would throw an error with any other octokit.repos.listContributors status/message.
             if(res.status != 204 || res.headers.status != "204 No Content") throw err;
         }
         return contributors;

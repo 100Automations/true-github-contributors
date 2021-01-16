@@ -672,25 +672,10 @@ describe("_listContributors()" , () => {
         }
     });
 
-    test("should throw if octokit.listContributors returns a response not related to the unintended type error relating to empty repos", async () => {
+    test("should throw if octokit.listContributors returns a response with unexpected status message", async () => {
         const paginateError = new TypeError("Cannot use 'in' operator to search for 'total_count' in undefined");
         sinon.stub(octokit, "paginate").throws(paginateError);
-        sinon.stub(octokit.repos, "listContributors").resolves({ status: 401, headers: { status: "This is a random message" } });
-
-        const input = { owner: "test", repo: "test" };
-
-        expect.assertions(1);
-        try {
-            await octokit._listContributors(input);
-        } catch(error) {
-            expect(error).toEqual(paginateError);
-        }
-    });
-
-    test("should throw if octokit.listContributors returns a response with the wrong status message", async () => {
-        const paginateError = new TypeError("Cannot use 'in' operator to search for 'total_count' in undefined");
-        sinon.stub(octokit, "paginate").throws(paginateError);
-        sinon.stub(octokit.repos, "listContributors").resolves({ status: 204, headers: { status: "This is the wrong message" } });
+        sinon.stub(octokit.repos, "listContributors").resolves({ status: 204, headers: { status: "This is a random message" } });
 
         const input = { owner: "test", repo: "test" };
 
@@ -705,7 +690,7 @@ describe("_listContributors()" , () => {
     test("should throw if octokit.listContributors returns a response with wrong statuscode", async () => {
         const paginateError = new TypeError("Cannot use 'in' operator to search for 'total_count' in undefined");
         sinon.stub(octokit, "paginate").throws(paginateError);
-        sinon.stub(octokit.repos, "listContributors").resolves({ status: 201, headers: { status: "204 No Content" } });
+        sinon.stub(octokit.repos, "listContributors").resolves({ status: 200, headers: { status: "204 No Content" } });
 
         const input = { owner: "test", repo: "test" };
 
@@ -717,6 +702,31 @@ describe("_listContributors()" , () => {
         }
     });
 
+    test("should leave input params unchanged when no paginate error thrown", async () => {
+        sinon.stub(octokit, "paginate").resolves([
+            { id: 202, contributions: 5 },
+            { id: 201, contributions: 3 },
+            { id: 203, contributions: 1 }
+        ]);
+        const input = { owner: "param1", repo: "param2" };
+        const originalInput = { owner: "param1", repo: "param2" };
+
+        await octokit._listContributors(input);
+        expect(input).toEqual(originalInput);
+    });
+
+    test("should leave input params unchanged when paginate error thrown", async () => {
+        const paginateError = new TypeError("Cannot use 'in' operator to search for 'total_count' in undefined");
+        sinon.stub(octokit, "paginate").throws(paginateError);
+        sinon.stub(octokit.repos, "listContributors").resolves({ status: 204, headers: { status: "204 No Content" } });
+        
+        const input = { owner: "param1", repo: "param2" };
+        const originalInput = { owner: "param1", repo: "param2" };
+
+        await octokit._listContributors(input);
+        expect(input).toEqual(originalInput);
+    });
+
     test("should return empty list if paginate throws but listContributors returns empty repo response", async () => {
         const paginateError = new TypeError("Cannot use 'in' operator to search for 'total_count' in undefined");
         sinon.stub(octokit, "paginate").throws(paginateError);
@@ -725,28 +735,6 @@ describe("_listContributors()" , () => {
         const input = { owner: "test", repo: "test" };
 
         const output = [];
-
-        expect(await octokit._listContributors(input)).toEqual(output);
-    });
-
-    test("should return an empty list of contributors if paginate returns an empty list", async () => {
-        sinon.stub(octokit, "paginate").resolves([]);
-        const input = { owner: "test", repo: "test" };
-
-        const output = [];
-
-        expect(await octokit._listContributors(input)).toEqual(output);
-    });
-
-    test("should return an list with one contributor if paginate returns a one contributor", async () => {
-        sinon.stub(octokit, "paginate").resolves([
-            { id: 201, contributions: 3 }
-        ]);
-        const input = { owner: "test", repo: "test" };
-
-        const output = [
-            { id: 201, contributions: 3 }
-        ];
 
         expect(await octokit._listContributors(input)).toEqual(output);
     });
