@@ -762,30 +762,6 @@ describe("listCommentContributors()", () => {
         sinon.restore();
     });
 
-    test("should call paginate with correct parameters", async () => {
-        const paginateStub = sinon.stub(octokit, "paginate");
-        paginateStub.resolves([]);
-        const inputParams = {
-            owner: "test owner", 
-            repo: "test repo", 
-            since: "test since", 
-            sort: "test", 
-            direction: "test",
-            per_page: 100,
-            page: 5
-        };
-
-        const expectedParams = {
-            owner: "test owner",
-            repo: "test repo",
-            since: "test since"
-        };
-
-        await octokit.listCommentContributors(inputParams);
-
-        sinon.assert.calledWith(paginateStub, octokit.issues.listCommentsForRepo, expectedParams);
-    });
-
     test("should leave input parameters unchanged", async () => {
         sinon.stub(octokit, "paginate").resolves([]);
         const inputParams = {
@@ -813,29 +789,6 @@ describe("listCommentContributors()", () => {
         expect(inputParams).toEqual(inputParamsCopy);
     });
 
-    test("should return an empty array when there are no issue comments", async () => {
-        sinon.stub(octokit, "paginate").resolves([]);
-        const input = { owner: "test", repo: "test" };
-
-        const output = [];
-
-        expect(await octokit.listCommentContributors(input)).toEqual(output);
-    });
-
-    test("should return array of length one when there is only one comment contributor", async () => {
-        sinon.stub(octokit, "paginate").resolves([
-            { id: 200, user: { id: 1 } }
-        ]);
-
-        const input = { owner: "test", repo: "test" };
-
-        const output = [
-            { id: 1, contributions: 1 }
-        ];
-
-        expect(await octokit.listCommentContributors(input)).toEqual(output);
-    });
-
     test("should aggregate, sort, and return a list of comment contributors", async () => {
         sinon.stub(octokit, "paginate").resolves([
             { id: 201, user: { id: 1 } },
@@ -860,6 +813,53 @@ describe("listCommentContributors()", () => {
             {id: 2, contributions: 2 },
             {id: 3, contributions: 2 },
             {id: 4, contributions: 1 },
+        ];
+
+        expect(await octokit.listCommentContributors(input)).toEqual(output);
+    });
+
+    test("should call paginate with correct parameters", async () => {
+        const paginateStub = sinon.stub(octokit, "paginate");
+        paginateStub.resolves([]);
+        const inputParams = {
+            owner: "test owner", 
+            repo: "test repo", 
+            since: "test since", 
+            sort: "test", 
+            direction: "test",
+            per_page: 100,
+            page: 5
+        };
+
+        const expectedParams = {
+            owner: "test owner",
+            repo: "test repo",
+            since: "test since"
+        };
+
+        await octokit.listCommentContributors(inputParams);
+
+        sinon.assert.calledWith(paginateStub, octokit.issues.listCommentsForRepo, expectedParams);
+    });
+
+    test("should return an empty array when there are no issue comments", async () => {
+        sinon.stub(octokit, "paginate").resolves([]);
+        const input = { owner: "test", repo: "test" };
+
+        const output = [];
+
+        expect(await octokit.listCommentContributors(input)).toEqual(output);
+    });
+
+    test("should return array of length one when there is only one comment contributor", async () => {
+        sinon.stub(octokit, "paginate").resolves([
+            { id: 200, user: { id: 1 } }
+        ]);
+
+        const input = { owner: "test", repo: "test" };
+
+        const output = [
+            { id: 1, contributions: 1 }
         ];
 
         expect(await octokit.listCommentContributors(input)).toEqual(output);
