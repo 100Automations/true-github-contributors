@@ -871,57 +871,68 @@ describe("listCommitContributors()", () => {
         sinon.restore();
     });
 
-    test("should call paginate with correct parameters", async () => {
-        const paginateStub = sinon.stub(octokit, "paginate");
-        paginateStub.resolves([]);
-        const inputParams = {
-            owner: "test", 
-            repo: "test", 
-            sha: "test",
-            path: "test",
-            author: "test",
-            since: "test",
-            until: "test",
-            per_page: 100,
-            page: 1
+    test("should throw on paginate error with unexpected error message", async () => {
+        class statusError extends Error {
+            constructor() {
+                super();
+                this.status = 409;
+                this.message = "Unexpected error message.";
+            }
         };
+        const paginateError = new statusError;
+        sinon.stub(octokit, "paginate").throws(paginateError);
+        const input = { owner: "test", repo: "test" };
 
-        const expectedParams = {
-            owner: "test", 
-            repo: "test", 
-            sha: "test",
-            path: "test",
-            since: "test",
-            until: "test"
+        expect.assertions(1);
+        try {
+            await octokit.listCommitContributors(input);
+        } catch(error) {
+            expect(error).toBe(paginateError);
+        }
+    });
+
+    test("should throw on error without status 409", async () => {
+        class statusError extends Error {
+            constructor() {
+                super();
+                this.status = 400;
+                this.message = "Git Repository is empty.";
+            }
         };
+        const paginateError = new statusError;
+        sinon.stub(octokit, "paginate").throws(paginateError);
+        const input = { owner: "test", repo: "test" };
 
-        await octokit.listCommitContributors(inputParams);
-
-        sinon.assert.calledWith(paginateStub, octokit.repos.listCommits, expectedParams);
+        expect.assertions(1);
+        try {
+            await octokit.listCommitContributors(input);
+        } catch(error) {
+            expect(error).toBe(paginateError);
+        }
     });
 
     test("should leave input parameters unchanged", async () => {
         sinon.stub(octokit, "paginate").resolves([]);
         const inputParams = {
-            owner: "test", 
-            repo: "test", 
-            sha: "test",
-            path: "test",
-            author: "test",
-            since: "test",
-            until: "test",
+            owner: "test owner", 
+            repo: "test repo", 
+            sha: "test sha",
+            path: "test path",
+            author: "test author",
+            since: "test since",
+            until: "test until",
             per_page: 100,
             page: 1
         };
 
         const inputParamsCopy = {
-            owner: "test", 
-            repo: "test", 
-            sha: "test",
-            path: "test",
-            author: "test",
-            since: "test",
-            until: "test",
+            owner: "test owner", 
+            repo: "test repo", 
+            sha: "test sha",
+            path: "test path",
+            author: "test author",
+            since: "test since",
+            until: "test until",
             per_page: 100,
             page: 1
         };
@@ -931,7 +942,7 @@ describe("listCommitContributors()", () => {
         expect(inputParams).toEqual(inputParamsCopy);
     });
 
-    test("should return an empty array when there are no commits and handle empty repo error is given", async () => {
+    test("should return an empty array when empty repo error is given", async () => {
         class EmptyRepoError extends Error {
             constructor() {
                 super();
@@ -948,50 +959,6 @@ describe("listCommitContributors()", () => {
 
         expect(await octokit.listCommitContributors(input)).toEqual(output);
         sinon.assert.threw(paginateStub, emptyRepoError);
-    });
-
-    test("should throw on error without status 409", async () => {
-        sinon.stub(octokit, "paginate").throws(new Error("Git Repository is empty."));
-        const input = { owner: "test", repo: "test" };
-
-        expect.assertions(1);
-        try {
-            await octokit.listCommitContributors(input);
-        } catch(error) {
-            expect(error.message).toEqual("Git Repository is empty.")
-        }
-    });
-
-    test("should throw on error without messsage 'Git Repository is empty.'", async () => {
-        class statusError extends Error {
-            constructor() {
-                super();
-                this.status = 409;
-            }
-        };
-        sinon.stub(octokit, "paginate").throws(new statusError());
-        const input = { owner: "test", repo: "test" };
-
-        expect.assertions(1);
-        try {
-            await octokit.listCommitContributors(input);
-        } catch(error) {
-            expect(error.status).toEqual(409)
-        }
-    });
-
-    test("should return array of length one when there is only one comment contributor", async () => {
-        sinon.stub(octokit, "paginate").resolves([
-            { id: 200, author: { id: 1 } }
-        ]);
-
-        const input = { owner: "test", repo: "test" };
-
-        const output = [
-            { id: 1, contributions: 1 }
-        ];
-
-        expect(await octokit.listCommitContributors(input)).toEqual(output);
     });
 
     test("should aggregate, sort, and return a list of comment contributors", async () => {
@@ -1018,6 +985,49 @@ describe("listCommitContributors()", () => {
             {id: 2, contributions: 2 },
             {id: 3, contributions: 2 },
             {id: 4, contributions: 1 },
+        ];
+
+        expect(await octokit.listCommitContributors(input)).toEqual(output);
+    });
+
+    test("should call paginate with correct parameters", async () => {
+        const paginateStub = sinon.stub(octokit, "paginate");
+        paginateStub.resolves([]);
+        const inputParams = {
+            owner: "test owner", 
+            repo: "test repo", 
+            sha: "test sha",
+            path: "test path",
+            author: "test author",
+            since: "test since",
+            until: "test until",
+            per_page: 100,
+            page: 1
+        };
+
+        const expectedParams = {
+            owner: "test owner", 
+            repo: "test repo", 
+            sha: "test sha",
+            path: "test path",
+            since: "test since",
+            until: "test until"
+        };
+
+        await octokit.listCommitContributors(inputParams);
+
+        sinon.assert.calledWith(paginateStub, octokit.repos.listCommits, expectedParams);
+    });
+
+    test("should return array of length one when there is only one comment contributor", async () => {
+        sinon.stub(octokit, "paginate").resolves([
+            { id: 200, author: { id: 1 } }
+        ]);
+
+        const input = { owner: "test", repo: "test" };
+
+        const output = [
+            { id: 1, contributions: 1 }
         ];
 
         expect(await octokit.listCommitContributors(input)).toEqual(output);
