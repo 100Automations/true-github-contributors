@@ -6,7 +6,7 @@ const trueContributors = {
      * @return {Array}                  [Array of GitHub users with data about how many commit and comment contributions they made to an organization]
      */
     async listCommitCommentContributorsForOrg(parameters) {
-        return this._listForOrgHelper("listCommitCommentContributors", parameters);
+        return this._listForOrgHelper(this.listCommitCommentContributors, parameters);
     },
 
     /**
@@ -15,7 +15,7 @@ const trueContributors = {
      * @return {Array}                  [Array of GitHub users with data about how many commits they made to an organization]
      */
     async listCommitContributorsForOrg(parameters) {
-        return this._listForOrgHelper("listCommitContributors", parameters);
+        return this._listForOrgHelper(this.listCommitContributors, parameters);
     },
 
     /**
@@ -24,7 +24,7 @@ const trueContributors = {
      * @return {Array}                  [Array of GitHub users with data about how many commits they made to an organization]
      */
     async listContributorsForOrg(parameters) {
-        return this._listForOrgHelper("listContributors", parameters);
+        return this._listForOrgHelper(this._listContributors, parameters);
     },
 
     /**
@@ -33,7 +33,7 @@ const trueContributors = {
      * @return {Array}                  [Array of GitHub users with data about how many issue comments they made to an organization]
      */
     async listCommentContributorsForOrg(parameters) {
-        return this._listForOrgHelper("listCommentContributors", parameters);
+        return this._listForOrgHelper(this.listCommentContributors, parameters);
     },
 
     /**
@@ -88,16 +88,16 @@ const trueContributors = {
     /**
      * Helper method used by organization contributor methods to call corresponding subsequent endpoint 
      * This helper was created to reduce the amount of reduncancy in the organization contributor fetching methods. 
-     * @param {String} endpoint         [Subsequent endpoint to fetch contributors with]
+     * @param {Function} endpoint       [Subsequent endpoint to fetch contributors with]
      * @param {String} parameters       [Parameters to be used in GitHub API request] 
      */
     async _listForOrgHelper(endpoint, parameters){
         if(
-            endpoint != "listCommentContributors" &&
-            endpoint != "listContributors" &&
-            endpoint != "listCommitContributors" &&
-            endpoint != "listCommitCommentContributors"
-        ) throw new TypeError(`Unexpected endpoint ${endpoint} provided.`);
+            endpoint != this.listCommentContributors &&
+            endpoint != this._listContributors &&
+            endpoint != this.listCommitContributors &&
+            endpoint != this.listCommitCommentContributors
+        ) throw new TypeError("Unexpected endpoint function provided.");
         let desiredParams = this._createParamsFromObject(["org", "type"], parameters);
         let repos = await this.paginate(this.repos.listForOrg, desiredParams);
 
@@ -105,10 +105,7 @@ const trueContributors = {
         for(let repo of repos) {
             let repoContributors;
             let params = { owner: repo.owner.login, repo: repo.name, ...parameters }
-            if(endpoint == "listCommentContributors") repoContributors = repoContributors = await this.listCommentContributors(params);
-            else if(endpoint == "listContributors") repoContributors = await this._listContributors(params);
-            else if(endpoint == "listCommitContributors") repoContributors = await this.listCommitContributors(params);
-            else if (endpoint == "listCommitCommentContributors") repoContributors = await this.listCommitCommentContributors(params);
+            repoContributors = await endpoint(params);
             contributors = contributors.concat(repoContributors);
         }
         return this._aggregateContributors(contributors);
