@@ -757,6 +757,101 @@ describe("_listContributors()" , () => {
     });
 });
 
+describe("_listForOrgHelper()", () => {
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    test("should throw if given unexpected endpoint", async() => {
+        const params = { org: "test", type: "test" };
+        const endpoint = octokit._aggregateContributions;
+        const unexpectedEndpointError = new TypeError("Unexpected endpoint function provided.");
+
+        expect.assertions(2);
+        try {
+            await octokit._listForOrgHelper(endpoint, params);
+        } catch (error) {
+            expect(error).toBeInstanceOf(TypeError);
+            expect(error).toEqual(unexpectedEndpointError);
+        }
+    });
+
+    test("should leave input unchanged", async() => {
+        sinon.stub(octokit, "listCommentContributors").resolves([
+            {id: 1, contributions: 1 },
+            {id: 2, contributions: 1 },
+            {id: 3, contributions: 1 },
+            {id: 4, contributions: 1 },
+            {id: 5, contributions: 1 },
+        ]);
+
+        const params = {org: "test org", type: "test type", randamParam: "randamValue"};
+        const endpoint = octokit.listCommentContributors;
+        const paramsOriginal = {org: "test org", type: "test type", randamParam: "randamValue"};
+        const endpointOriginal = octokit.listCommentContributors;
+
+        sinon.stub(octokit, "paginate").resolves([
+            { owner: { login: "test owner" }, name: "repo1" },
+            { owner: { login: "test owner" }, name: "repo2" },
+            { owner: { login: "test owner" }, name: "repo3" },
+            { owner: { login: "test owner" }, name: "repo4" },
+        ]);
+
+        await octokit._listForOrgHelper(endpoint, params);
+
+        expect(params).toEqual(paramsOriginal);
+        expect(endpoint).toEqual(endpointOriginal);
+    });
+
+    test("should return empty array if there are no repos", async() => {
+        const endpoint = octokit.listCommentContributors;
+        const params = { org: "test", type: "test" };
+        const output = [];
+
+        sinon.stub(octokit, "paginate").resolves([]);
+
+        expect(await octokit._listForOrgHelper(endpoint, params)).toEqual(output);
+    });
+
+    test("should aggregate contributors from repos using the given endpoint function", async() => {
+        sinon.stub(octokit, "paginate").resolves([
+            { owner: { login: "test" }, name: "repo1" },
+            { owner: { login: "test" }, name: "repo2" },
+            { owner: { login: "test" }, name: "repo3" },
+            { owner: { login: "test" }, name: "repo4" },
+        ]);
+        const listCommentContributorsStub = sinon.stub(octokit, "listCommentContributors");
+        listCommentContributorsStub.onCall(0).resolves([
+            { id: 201, contributions: 5 },
+            { id: 202, contributions: 3 },
+            { id: 203, contributions: 1 }
+        ]);
+        listCommentContributorsStub.onCall(1).resolves([
+            { id: 201, contributions: 7 },
+            { id: 204, contributions: 5 },
+            { id: 203, contributions: 2 }
+        ]);
+        listCommentContributorsStub.onCall(2).resolves([]);
+        listCommentContributorsStub.onCall(3).resolves([
+            { id: 205, contributions: 4 },
+            { id: 206, contributions: 1 }
+        ]);
+
+        const endpoint = octokit.listCommentContributors;
+        const params = { org: "test", type: "test" };
+        const output = [
+            { id: 201, contributions: 12 },
+            { id: 204, contributions: 5 },
+            { id: 205, contributions: 4 },
+            { id: 202, contributions: 3 },
+            { id: 203, contributions: 3 },
+            { id: 206, contributions: 1 },
+        ];
+
+        expect(await octokit._listForOrgHelper(endpoint, params)).toEqual(output);
+    });
+});
+
 describe("listCommentContributors()", () => {
     afterEach(() => {
         sinon.restore();
