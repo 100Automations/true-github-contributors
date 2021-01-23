@@ -293,7 +293,7 @@ describe("_reduceContributions()", () => {
             {id: 2, contributions: 7},
             {id: 4, contributions: 32}
         ];
-        const noContrError = new ReferenceError(`Error: contributor {"id":1} has no property contributions.`);
+        const noContrError = new ReferenceError(`Error: contributor {"id":1} has no property: contributions.`);
 
         expect.assertions(2);
         try {
@@ -313,7 +313,7 @@ describe("_reduceContributions()", () => {
             {id: 2, contributions: 7},
             {id: 4, contributions: 32}
         ];
-        const noIdError = new ReferenceError(`Error: contributor {"contributions":17} has no property id.`);
+        const noIdError = new ReferenceError(`Error: contributor {"contributions":17} has no property: id.`);
 
         expect.assertions(2);
         try {
