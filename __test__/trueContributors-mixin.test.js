@@ -49,11 +49,11 @@ describe("_sortByContributions()", () => {
     });
 
     test("should leave inputs unmodified", () => {
-        const inputA = { id: 1, contributions: 16 };
-        const inputB = { id: 2, contributions: 15 };
+        const inputA = { id: 1, contributions: 16, testParam: "testParamA" };
+        const inputB = { id: 2, contributions: 15, testParam: "testParamB" };
 
-        const inputAOriginal = { id: 1, contributions: 16 };
-        const inputBOriginal = { id: 2, contributions: 15 };
+        const inputAOriginal = { id: 1, contributions: 16, testParam: "testParamA" };
+        const inputBOriginal = { id: 2, contributions: 15, testParam: "testParamB" };
 
         octokit._sortByContributions(inputA, inputB)
 
