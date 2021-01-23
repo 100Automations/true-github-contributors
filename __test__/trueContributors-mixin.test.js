@@ -27,6 +27,27 @@ describe("_sortByContributions()", () => {
         }
     });
 
+    test("should throw error if argument contribution property is not a string", () => {
+        const inputA = { id: 1, contributions: 16 };
+        const inputB = { id: 2, contributions: "test" };
+        const contrError = new TypeError("Error: tried to sort by contributions while object contribution property is not a number.");
+
+        expect.assertions(4);
+        try {
+            octokit._sortByContributions(inputA, inputB)
+        } catch(error) {
+            expect(error).toBeInstanceOf(TypeError);
+            expect(error).toEqual(contrError);
+        }
+
+        try {
+            octokit._sortByContributions(inputB, inputA)
+        } catch(error) {
+            expect(error).toBeInstanceOf(TypeError);
+            expect(error).toEqual(contrError);
+        }
+    });
+
     test("should leave inputs unmodified", () => {
         const inputA = { id: 1, contributions: 16 };
         const inputB = { id: 2, contributions: 15 };
