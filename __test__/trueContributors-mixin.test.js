@@ -394,7 +394,7 @@ describe("_aggregateContributors()", () => {
             {id: 2, contributions: 2},
             {contributions: 10}
         ];
-        const noIdError = new ReferenceError(`Error: contributor {"contributions":10} has no property id.`);
+        const noIdError = new ReferenceError(`Error: contributor {"contributions":10} has no property: id.`);
 
         expect.assertions(2);
         try {
@@ -411,7 +411,7 @@ describe("_aggregateContributors()", () => {
             {id: 2, contributions: 2},
             {id: 3}
         ];
-        const noContrError = new ReferenceError(`Error: contributor {"id":3} has no property contributions.`);
+        const noContrError = new ReferenceError(`Error: contributor {"id":3} has no property: contributions.`);
 
         expect.assertions(2);
         try {
@@ -424,21 +424,21 @@ describe("_aggregateContributors()", () => {
 
     test("should leave input unmodified", () => {
         const input = [
-            {id: 1, contributions: 15},
-            {id: 2, contributions: 5},
-            {id: 1, contributions: 17},
-            {id: 3, contributions: 47},
-            {id: 2, contributions: 7},
-            {id: 4, contributions: 32}
+            {id: 4, contributions: 32, testProp: "testProp1"},
+            {id: 1, contributions: 15, testProp: "testProp2"},
+            {id: 2, contributions: 5, testProp: "testProp3"},
+            {id: 1, contributions: 17, testProp: "testProp4"},
+            {id: 3, contributions: 47, testProp: "testProp5"},
+            {id: 2, contributions: 7, testProp: "testProp6"},
         ];
 
         const originalInput = [
-            {id: 1, contributions: 15},
-            {id: 2, contributions: 5},
-            {id: 1, contributions: 17},
-            {id: 3, contributions: 47},
-            {id: 2, contributions: 7},
-            {id: 4, contributions: 32}
+            {id: 4, contributions: 32, testProp: "testProp1"},
+            {id: 1, contributions: 15, testProp: "testProp2"},
+            {id: 2, contributions: 5, testProp: "testProp3"},
+            {id: 1, contributions: 17, testProp: "testProp4"},
+            {id: 3, contributions: 47, testProp: "testProp5"},
+            {id: 2, contributions: 7, testProp: "testProp6"},
         ];
 
         octokit._aggregateContributors(input);
@@ -484,12 +484,12 @@ describe("_aggregateContributors()", () => {
 
     test("should aggregate a list of contributors", () => {
         const input = [
+            {id: 4, contributions: 32},
             {id: 1, contributions: 15},
             {id: 2, contributions: 5},
             {id: 1, contributions: 17},
             {id: 3, contributions: 47},
-            {id: 2, contributions: 7},
-            {id: 4, contributions: 32}
+            {id: 2, contributions: 7}
         ];
 
         const output = [
