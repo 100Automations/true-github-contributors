@@ -95,39 +95,20 @@ describe("_contributorDictToArr()", () => {
         }
     });
 
-    test("should throw if a contributor object does not have contributions property", () => {
-        const input = {
-            1: {id: 1, contributions: 15},
-            2: {id: 2, contributions: 7},
-            3: {id: 3},
-            4: {id: 4, contributions: 6},
-            5: {id: 5, contributions: 7}
-        };
-        const noContrError = new ReferenceError("Error: tried to sort by contributions while object has no contribution property.");
-
-        expect.assertions(2);
-        try {
-            octokit._contributorDictToArr(input);
-        } catch(error) {
-            expect(error).toBeInstanceOf(ReferenceError);
-            expect(error).toEqual(noContrError);
-        }
-    });
-
     test("should leave original input unmodified", () => {
         const input = {
-            1: {id: 1, contributions: 15},
-            2: {id: 2, contributions: 7},
-            3: {id: 3, contributions: 24},
-            4: {id: 4, contributions: 6},
-            5: {id: 5, contributions: 7}
+            1: {id: 1, contributions: 15, testParam: "testParam1"},
+            4: {id: 4, contributions: 6, testParam: "testParam4"},
+            2: {id: 2, contributions: 7, testParam: "testParam2"},
+            5: {id: 5, contributions: 7, testParam: "testParam5"},
+            3: {id: 3, contributions: 24, testParam: "testParam3"}
         };
         const originalInput = {
-            1: {id: 1, contributions: 15},
-            2: {id: 2, contributions: 7},
-            3: {id: 3, contributions: 24},
-            4: {id: 4, contributions: 6},
-            5: {id: 5, contributions: 7}
+            1: {id: 1, contributions: 15, testParam: "testParam1"},
+            4: {id: 4, contributions: 6, testParam: "testParam4"},
+            2: {id: 2, contributions: 7, testParam: "testParam2"},
+            5: {id: 5, contributions: 7, testParam: "testParam5"},
+            3: {id: 3, contributions: 24, testParam: "testParam3"}
         };
 
         octokit._contributorDictToArr(input);
@@ -156,11 +137,11 @@ describe("_contributorDictToArr()", () => {
 
     test("should return list of contributor objects sorted by contributions", () => {
         const input = {
-            1: {id: 1, contributions: 15},
+            4: {id: 4, contributions: 6},
             2: {id: 2, contributions: 7},
             3: {id: 3, contributions: 24},
-            4: {id: 4, contributions: 6},
-            5: {id: 5, contributions: 7}
+            5: {id: 5, contributions: 7},
+            1: {id: 1, contributions: 15}
         };
 
         const output = [
