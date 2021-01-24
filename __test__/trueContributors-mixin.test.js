@@ -1058,7 +1058,7 @@ describe("listCommitContributors()", () => {
         sinon.assert.threw(paginateStub, emptyRepoError);
     });
 
-    test("should aggregate, sort, and return a list of comment contributors", async () => {
+    test("should aggregate, sort, and return a list of commit contributors", async () => {
         sinon.stub(octokit, "paginate").resolves([
             { id: 201, author: { id: 1 } },
             { id: 202, author: { id: 2 } },
