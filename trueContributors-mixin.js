@@ -125,7 +125,7 @@ const trueContributors = {
         let contributors = [];
         // Catch octokit.paginate errors to check if caused from calling paginate on empty repo.
         try {
-            contributors = this.paginate(this.repos.listContributors, parameters);
+            contributors = await this.paginate(this.repos.listContributors, parameters);
         } catch(err) {
             // Use octokit.repos.listContributors to check if error stems from calling paginate on empty repo.
             let res = await this.repos.listContributors(parameters);
