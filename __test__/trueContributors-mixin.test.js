@@ -689,7 +689,7 @@ describe("_listContributors()" , () => {
         }
     });
 
-    test("should throw if octokit.listContributors returns a response with wrong statuscode", async () => {
+    test("should throw if octokit.listContributors returns a response with unexpected status code", async () => {
         const paginateError = new TypeError("Cannot use 'in' operator to search for 'total_count' in undefined");
         sinon.stub(octokit, "paginate").throws(paginateError);
         sinon.stub(octokit.repos, "listContributors").resolves({ status: 200, headers: { status: "204 No Content" } });
@@ -710,8 +710,8 @@ describe("_listContributors()" , () => {
             { id: 201, contributions: 3 },
             { id: 203, contributions: 1 }
         ]);
-        const input = { owner: "param1", repo: "param2" };
-        const originalInput = { owner: "param1", repo: "param2" };
+        const input = { owner: "param1", repo: "param2", testParam: "testParam3" };
+        const originalInput = { owner: "param1", repo: "param2", testParam: "testParam3" };
 
         await octokit._listContributors(input);
         expect(input).toEqual(originalInput);
@@ -722,8 +722,8 @@ describe("_listContributors()" , () => {
         sinon.stub(octokit, "paginate").throws(paginateError);
         sinon.stub(octokit.repos, "listContributors").resolves({ status: 204, headers: { status: "204 No Content" } });
         
-        const input = { owner: "param1", repo: "param2" };
-        const originalInput = { owner: "param1", repo: "param2" };
+        const input = { owner: "param1", repo: "param2", testParam: "testParam3" };
+        const originalInput = { owner: "param1", repo: "param2", testParam: "testParam3" };
 
         await octokit._listContributors(input);
         expect(input).toEqual(originalInput);
