@@ -539,24 +539,24 @@ describe("_aggregateContributions()", () => {
 
     test("should leave input unmodified", () => {
         const input = [
-            { body: "test body", user: { id: 1 } },
-            { body: "test body", user: { id: 1 } },
-            { body: "test body", user: { id: 2 } },
-            { body: "test body", user: { id: 3 } },
-            { body: "test body", user: { id: 2 } },
-            { body: "test body", user: { id: 2 } },
-            { body: "test body", user: { id: 4 } },
+            { body: "test body", testProp: "testProp1", user: { id: 1, testProp: "testProp8" } },
+            { body: "test body", testProp: "testProp2", user: { id: 1, testProp: "testProp9" } },
+            { body: "test body", testProp: "testProp3", user: { id: 2, testProp: "testProp10" } },
+            { body: "test body", testProp: "testProp4", user: { id: 3, testProp: "testProp11" } },
+            { body: "test body", testProp: "testProp5", user: { id: 2, testProp: "testProp12" } },
+            { body: "test body", testProp: "testProp6", user: { id: 2, testProp: "testProp13" } },
+            { body: "test body", testProp: "testProp7", user: { id: 4, testProp: "testProp14" } },
         ];
         const inputIdentifier = "user";
 
         const originalInput = [
-            { body: "test body", user: { id: 1 } },
-            { body: "test body", user: { id: 1 } },
-            { body: "test body", user: { id: 2 } },
-            { body: "test body", user: { id: 3 } },
-            { body: "test body", user: { id: 2 } },
-            { body: "test body", user: { id: 2 } },
-            { body: "test body", user: { id: 4 } },
+            { body: "test body", testProp: "testProp1", user: { id: 1, testProp: "testProp8" } },
+            { body: "test body", testProp: "testProp2", user: { id: 1, testProp: "testProp9" } },
+            { body: "test body", testProp: "testProp3", user: { id: 2, testProp: "testProp10" } },
+            { body: "test body", testProp: "testProp4", user: { id: 3, testProp: "testProp11" } },
+            { body: "test body", testProp: "testProp5", user: { id: 2, testProp: "testProp12" } },
+            { body: "test body", testProp: "testProp6", user: { id: 2, testProp: "testProp13" } },
+            { body: "test body", testProp: "testProp7", user: { id: 4, testProp: "testProp14" } },
         ];
 
         octokit._aggregateContributions(input, inputIdentifier);
