@@ -852,6 +852,16 @@ describe("_listForOrgHelper()", () => {
 
         expect(await octokit._listForOrgHelper(endpoint, params)).toEqual(output);
     });
+
+    test("should recognize the correct contributor fetching methods", async () => {
+        sinon.stub(octokit, "paginate").resolves([]);
+        const params = { org: "test", type: "test" };
+
+        expect(await octokit._listForOrgHelper(octokit.listCommentContributors, params)).toEqual([]);
+        expect(await octokit._listForOrgHelper(octokit.listCommitContributors, params)).toEqual([]);
+        expect(await octokit._listForOrgHelper(octokit._listContributors, params)).toEqual([]);
+        expect(await octokit._listForOrgHelper(octokit.listCommitCommentContributors, params)).toEqual([]);
+    });
 });
 
 describe("listCommentContributors()", () => {
