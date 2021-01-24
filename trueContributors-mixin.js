@@ -105,7 +105,13 @@ const trueContributors = {
         for(let repo of repos) {
             let repoContributors;
             let params = { owner: repo.owner.login, repo: repo.name, ...parameters }
-            repoContributors = await endpoint(params);
+            // The following if block is not pretty, but it is used to avoid issues with referenceing the "this" object.
+            // Ideally, I would just call "endpoint(parameters)", but that was causing issues with references to"this"
+            // in those functions.
+            if(endpoint == this.listCommentContributors) repoContributors = await this.listCommentContributors(params);
+            else if(endpoint == this._listContributors) repoContributors = await this._listContributors(params);
+            else if(endpoint == this.listCommitContributors) repoContributors = await this.listCommitContributors(params);
+            else if(endpoint == this.listCommitCommentContributors) repoContributors = await this.listCommitCommentContributors(params);
             contributors = contributors.concat(repoContributors);
         }
         return this._aggregateContributors(contributors);
