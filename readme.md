@@ -88,6 +88,9 @@ Every user object will have additional endpoints that can give more data about e
 
 ## API
 ### Versions/Updates
+#### Version `1.0.5` Changes
+- Rewrite internal behaviour of methods to reduce code redundancy.
+- Modify, update, add, and delete unit tests. Removed unit tests that seemed unnecessary.
 #### Version `1.0.4` Changes
 - Remove `coverage/` directory from repository and add it to the `.gitignore` file.
 - Add `SECURITY.md`, `SUPPORT.md`, and `CONTRIBUTING.md` to the `.npmignore` file so that they will not be included with package installation.
