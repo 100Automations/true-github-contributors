@@ -1,6 +1,6 @@
 {
   "name": "true-github-contributors",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Module to assists with GitHub contributor data using octokit/rest.js",
   "main": "index.js",
   "scripts": {
