@@ -60,7 +60,7 @@ Because this is an extension of octokit/rest.js, it is used in a way that is ide
 The goal of this mixin is to make it feel like it's naturally a part of octokit/rest.js. Because of that, it also takes input similarly to how octokit/rest.js: a set of parameters that define the desired organiation/repo and additional parameters to further define what you want the data set to represent. In the future, there will be detailed documentation on how to use the mixin.
 
 ### Output
-Each of the endpoints will return an arraay of contributor objects that mimic the structure of the "List Repository Contributors" [endpoint](https://developer.github.com/v3/repos/#list-repository-contributors) of the GitHub API:
+Each of the endpoints will return an array of contributor objects that mimic the structure of the "List Repository Contributors" [endpoint](https://developer.github.com/v3/repos/#list-repository-contributors) of the GitHub API:
 ```javascript
 {
     login: 'KianBadie',
